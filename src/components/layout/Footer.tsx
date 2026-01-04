@@ -13,20 +13,22 @@ export function Footer() {
             One-off SEO analysis. No storage.
           </span>
           
-          <a 
-            href="https://supportcall.com.au" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-0.5 text-center text-primary hover:underline sm:items-end sm:text-right"
-          >
+          <div className="flex flex-col items-center gap-0.5 text-center sm:items-end sm:text-right">
             <span>Need help with ICT issues?</span>
             <span>Need to reduce downtime?</span>
-            <span className="flex items-center gap-1.5">
-              Have a quick look at SupportCALL.com.au
-              <ExternalLink className="h-3.5 w-3.5" />
+            <span>
+              Have a quick look at{' '}
+              <a 
+                href="https://supportcall.com.au" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                SupportCALL.com.au
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             </span>
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
+          </div>
         </div>
       </div>
     </footer>
