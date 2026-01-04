@@ -17,9 +17,14 @@ export function Footer() {
             href="https://supportcall.com.au" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-primary hover:underline"
+            className="flex flex-col items-center gap-0.5 text-center text-primary hover:underline sm:items-end sm:text-right"
           >
-            Need help fixing issues? SupportCALL.com.au
+            <span>Need help with ICT issues?</span>
+            <span>Need to reduce downtime?</span>
+            <span className="flex items-center gap-1.5">
+              Have a quick look at SupportCALL.com.au
+              <ExternalLink className="h-3.5 w-3.5" />
+            </span>
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>
