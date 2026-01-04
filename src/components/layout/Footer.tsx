@@ -10,7 +10,7 @@ export function Footer() {
           </span>
           
           <span className="text-center">
-            One-off SEO analysis. No storage.
+            A once-off SEO analysis | Privacy-first approach | No data collection | Free for all users
           </span>
           
           <div className="flex flex-col items-center gap-0.5 text-center sm:items-end sm:text-right">
