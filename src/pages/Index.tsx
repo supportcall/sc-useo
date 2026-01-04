@@ -4,7 +4,7 @@ import { UrlInput } from '@/components/seo/UrlInput';
 import { AnalysisProgress } from '@/components/seo/AnalysisProgress';
 import { ResultsDashboard } from '@/components/seo/ResultsDashboard';
 import { AnalysisConfig, AnalysisState, analysisStages, AnalysisStage } from '@/types/seo';
-import { simulateAnalysis } from '@/lib/mock-analysis';
+import { runAnalysis } from '@/lib/seo-analysis';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -38,7 +38,7 @@ const Index = () => {
     abortControllerRef.current = new AbortController();
 
     try {
-      const result = await simulateAnalysis(config, updateStage, abortControllerRef.current.signal);
+      const result = await runAnalysis(config, updateStage, abortControllerRef.current.signal);
       
       setState((prev) => ({
         ...prev,
