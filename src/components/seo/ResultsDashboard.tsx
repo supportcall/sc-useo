@@ -7,6 +7,7 @@ import { AnalysisResult, Category, Issue } from '@/types/seo';
 import { ResultsSummary } from './ResultsSummary';
 import { IssueCard } from './IssueCard';
 import { useToast } from '@/hooks/use-toast';
+import { generatePDFReport } from '@/lib/pdf-generator';
 
 interface ResultsDashboardProps {
   result: AnalysisResult;
@@ -39,10 +40,19 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
   };
 
   const exportPDF = () => {
-    toast({
-      title: 'PDF Export',
-      description: 'PDF export requires backend functionality. Enable Lovable Cloud to generate PDFs.',
-    });
+    try {
+      generatePDFReport(result);
+      toast({
+        title: 'PDF Ready',
+        description: 'Use the print dialog to save as PDF.',
+      });
+    } catch (error) {
+      toast({
+        title: 'PDF Export Failed',
+        description: (error as Error).message || 'Please allow popups and try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const exportJSON = () => {
