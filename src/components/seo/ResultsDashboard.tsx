@@ -112,16 +112,16 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="secondary" onClick={exportPDF}>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button variant="secondary" onClick={exportPDF} className="flex-1 sm:flex-none">
               <FileText className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Button variant="secondary" onClick={exportJSON}>
+            <Button variant="secondary" onClick={exportJSON} className="flex-1 sm:flex-none">
               <FileJson className="mr-2 h-4 w-4" />
               Download JSON
             </Button>
-            <Button variant="secondary" onClick={exportCSV}>
+            <Button variant="secondary" onClick={exportCSV} className="flex-1 sm:flex-none">
               <FileSpreadsheet className="mr-2 h-4 w-4" />
               Download CSV
             </Button>
@@ -131,27 +131,29 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
 
       {/* Issues Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex-wrap h-auto justify-start gap-1 bg-transparent p-0">
-          <TabsTrigger 
-            value="fix-plan"
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            Fix Plan ({result.issues.length})
-          </TabsTrigger>
-          {categoryTabs.map((tab) => {
-            const count = getIssuesByCategory(tab.id as Category).length;
-            if (count === 0) return null;
-            return (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                {tab.label} ({count})
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex h-auto min-w-max justify-start gap-1 bg-transparent p-0">
+            <TabsTrigger 
+              value="fix-plan"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
+            >
+              Fix Plan ({result.issues.length})
+            </TabsTrigger>
+            {categoryTabs.map((tab) => {
+              const count = getIssuesByCategory(tab.id as Category).length;
+              if (count === 0) return null;
+              return (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
+                >
+                  {tab.label} ({count})
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </div>
 
         <TabsContent value="fix-plan" className="mt-4 space-y-3">
           <p className="text-sm text-muted-foreground">
