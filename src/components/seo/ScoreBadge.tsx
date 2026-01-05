@@ -29,16 +29,27 @@ export function ScoreBadge({ score, size = 'md', showLabel = true }: ScoreBadgeP
     lg: 'h-20 w-20 text-2xl',
   };
 
+  const maxScoreSizes = {
+    sm: 'text-lg',
+    md: 'text-2xl',
+    lg: 'text-3xl',
+  };
+
   return (
     <div className="flex flex-col items-center gap-1">
-      <div
-        className={cn(
-          'flex items-center justify-center rounded-full font-bold',
-          sizeClasses[size],
-          getScoreClass(score)
-        )}
-      >
-        {score}
+      <div className="flex items-center gap-1">
+        <div
+          className={cn(
+            'flex items-center justify-center rounded-full font-bold',
+            sizeClasses[size],
+            getScoreClass(score)
+          )}
+        >
+          {score}
+        </div>
+        <span className={cn('font-semibold text-muted-foreground', maxScoreSizes[size])}>
+          /100
+        </span>
       </div>
       {showLabel && (
         <span className="text-sm font-medium text-muted-foreground">
