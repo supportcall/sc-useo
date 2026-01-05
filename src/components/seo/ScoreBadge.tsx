@@ -30,9 +30,9 @@ export function ScoreBadge({ score, size = 'md', showLabel = true }: ScoreBadgeP
   };
 
   const maxScoreSizes = {
-    sm: 'text-lg',
-    md: 'text-2xl',
-    lg: 'text-3xl',
+    sm: 'text-2xl',
+    md: 'text-4xl',
+    lg: 'text-5xl',
   };
 
   return (
@@ -47,7 +47,7 @@ export function ScoreBadge({ score, size = 'md', showLabel = true }: ScoreBadgeP
         >
           {score}
         </div>
-        <span className={cn('font-semibold text-muted-foreground', maxScoreSizes[size])}>
+        <span className={cn('font-black text-muted-foreground', maxScoreSizes[size])}>
           /100
         </span>
       </div>
