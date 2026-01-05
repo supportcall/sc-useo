@@ -24,35 +24,49 @@ export function ScoreBadge({ score, size = 'md', showLabel = true }: ScoreBadgeP
   };
 
   const sizeClasses = {
-    sm: 'h-10 w-10 text-sm',
-    md: 'h-14 w-14 text-lg',
-    lg: 'h-20 w-20 text-2xl',
+    sm: 'h-12 w-12 text-base',
+    md: 'h-16 w-16 text-xl',
+    lg: 'h-24 w-24 text-3xl',
   };
 
   const maxScoreSizes = {
-    sm: 'text-2xl',
-    md: 'text-4xl',
+    sm: 'text-xl',
+    md: 'text-3xl',
     lg: 'text-5xl',
   };
 
+  const labelSizes = {
+    sm: 'text-xs',
+    md: 'text-sm',
+    lg: 'text-base',
+  };
+
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="flex items-center gap-1">
+    <div className="flex flex-col items-center gap-2">
+      <div className="flex items-baseline gap-0.5">
         <div
           className={cn(
-            'flex items-center justify-center rounded-full font-bold',
+            'flex items-center justify-center rounded-full font-bold shadow-sm',
             sizeClasses[size],
             getScoreClass(score)
           )}
+          role="img"
+          aria-label={`SEO Score: ${score} out of 100, rated ${getScoreLabel(score)}`}
         >
           {score}
         </div>
-        <span className={cn('font-black text-muted-foreground', maxScoreSizes[size])}>
+        <span 
+          className={cn(
+            'font-black text-muted-foreground tracking-tight',
+            maxScoreSizes[size]
+          )}
+          aria-hidden="true"
+        >
           /100
         </span>
       </div>
       {showLabel && (
-        <span className="text-sm font-medium text-muted-foreground">
+        <span className={cn('font-semibold text-muted-foreground', labelSizes[size])}>
           {getScoreLabel(score)}
         </span>
       )}
