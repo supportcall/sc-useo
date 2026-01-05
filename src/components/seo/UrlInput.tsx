@@ -237,6 +237,42 @@ export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputPro
               </div>
             </div>
 
+            {/* Security Categories */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Security & Reputation</h4>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {checkCategories
+                  .filter(cat => cat.group === 'security')
+                  .map(cat => (
+                    <label
+                      key={cat.id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${
+                        config.selectedCategories.includes(cat.id)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={config.selectedCategories.includes(cat.id)}
+                        onCheckedChange={(checked) => {
+                          setConfig(prev => ({
+                            ...prev,
+                            selectedCategories: checked
+                              ? [...prev.selectedCategories, cat.id]
+                              : prev.selectedCategories.filter(id => id !== cat.id)
+                          }));
+                        }}
+                        disabled={isRunning}
+                      />
+                      <div className="space-y-0.5">
+                        <span className="text-sm font-medium leading-none">{cat.label}</span>
+                        <p className="text-xs text-muted-foreground">{cat.description}</p>
+                      </div>
+                    </label>
+                  ))}
+              </div>
+            </div>
+
             {/* Marketing & Analytics Categories */}
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground">Marketing & Analytics</h4>
