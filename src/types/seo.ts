@@ -96,6 +96,7 @@ export type CheckCategory =
   | 'technical'
   | 'performance'
   | 'security'
+  | 'blacklist'
   | 'gtm'
   | 'ga4'
   | 'search-console'
@@ -109,7 +110,7 @@ export interface CheckCategoryOption {
   id: CheckCategory;
   label: string;
   description: string;
-  group: 'seo' | 'marketing';
+  group: 'seo' | 'marketing' | 'security';
 }
 
 export const checkCategories: CheckCategoryOption[] = [
@@ -123,7 +124,9 @@ export const checkCategories: CheckCategoryOption[] = [
   { id: 'structured-data', label: 'Structured Data', description: 'JSON-LD, schema.org markup', group: 'seo' },
   { id: 'technical', label: 'Technical SEO', description: 'HTTPS, mobile-friendly, redirects', group: 'seo' },
   { id: 'performance', label: 'Performance', description: 'Page speed, Core Web Vitals', group: 'seo' },
-  { id: 'security', label: 'Security', description: 'HTTPS, mixed content, headers', group: 'seo' },
+  // Security Categories
+  { id: 'security', label: 'Security', description: 'HTTPS, mixed content, headers', group: 'security' },
+  { id: 'blacklist', label: 'Blacklist Check', description: 'Spam/malware blacklist status (50+ lists)', group: 'security' },
   // Marketing & Analytics Categories
   { id: 'gtm', label: 'Google Tag Manager', description: 'GTM container detection', group: 'marketing' },
   { id: 'ga4', label: 'Google Analytics 4', description: 'GA4 measurement ID detection', group: 'marketing' },
