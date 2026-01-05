@@ -1,3 +1,6 @@
+# robots.txt for SupportCALL Ultimate SEO
+# https://sc-seo.io/
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +15,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap location
+Sitemap: https://sc-seo.io/sitemap.xml
+
+# Disallow health check endpoints
+Disallow: /healthz
+Disallow: /readyz
