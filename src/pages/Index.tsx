@@ -99,16 +99,16 @@ const Index = () => {
     <Layout>
       <div className="container-wide py-6 lg:py-10">
         {/* Hero Section */}
-        <div className="mb-8 text-center">
+        <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             SEO Analysis Portal
           </h1>
           <p className="mt-2 text-muted-foreground">
             Run a comprehensive, one-off SEO audit for any website. No data stored.
           </p>
-        </div>
+        </header>
 
-        <div className="mx-auto max-w-4xl space-y-6">
+        <section className="mx-auto max-w-4xl space-y-6" aria-label="SEO Analysis Tool">
           {/* Input Form */}
           <UrlInput
             onSubmit={handleSubmit}
@@ -135,7 +135,7 @@ const Index = () => {
               </p>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </Layout>
   );

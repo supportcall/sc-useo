@@ -1,0 +1,155 @@
+# ============================================
+# COMPLETE .htaccess FOR cPanel DEPLOYMENT
+# Generated for: SupportCALL Ultimate SEO
+# Target: CentOS 7.9 / WHM/cPanel 110.0.80
+# ============================================
+
+# ----------------
+# FORCE HTTPS
+# ----------------
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ----------------
+# WWW REDIRECT (Force non-WWW)
+# ----------------
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+# ----------------
+# SECURITY HEADERS
+# ----------------
+<IfModule mod_headers.c>
+  # HSTS - Force HTTPS for 1 year
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" env=HTTPS
+  
+  # Prevent MIME type sniffing
+  Header set X-Content-Type-Options "nosniff"
+  
+  # Clickjacking protection
+  Header set X-Frame-Options "SAMEORIGIN"
+  
+  # XSS Protection (legacy browsers)
+  Header set X-XSS-Protection "1; mode=block"
+  
+  # Referrer Policy
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  
+  # Permissions Policy - Disable unnecessary APIs
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+
+  # Content Security Policy
+  # Note: 'unsafe-inline' needed for Vite/React inline styles
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+</IfModule>
+
+# ----------------
+# COMPRESSION (GZIP)
+# ----------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml
+  AddOutputFilterByType DEFLATE text/css text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/xml application/xhtml+xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+  AddOutputFilterByType DEFLATE font/ttf font/otf font/woff font/woff2
+</IfModule>
+
+# ----------------
+# BROWSER CACHING
+# ----------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+
+  # HTML - no cache (always fresh)
+  ExpiresByType text/html "access plus 0 seconds"
+
+  # CSS & JavaScript - 1 week (hashed by Vite)
+  ExpiresByType text/css "access plus 1 week"
+  ExpiresByType application/javascript "access plus 1 week"
+
+  # Images - 1 week
+  ExpiresByType image/webp "access plus 1 week"
+  ExpiresByType image/jpeg "access plus 1 week"
+  ExpiresByType image/png "access plus 1 week"
+  ExpiresByType image/gif "access plus 1 week"
+  ExpiresByType image/svg+xml "access plus 1 week"
+  ExpiresByType image/x-icon "access plus 1 week"
+
+  # Fonts - 1 week
+  ExpiresByType font/woff "access plus 1 week"
+  ExpiresByType font/woff2 "access plus 1 week"
+  ExpiresByType application/font-woff "access plus 1 week"
+  ExpiresByType application/font-woff2 "access plus 1 week"
+
+  # Data interchange - no cache
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType application/xml "access plus 0 seconds"
+</IfModule>
+
+# ----------------
+# CACHE-CONTROL HEADERS
+# ----------------
+<IfModule mod_headers.c>
+  # HTML - no cache
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+
+  # Static assets with hash - immutable long cache
+  <FilesMatch "\.(css|js|woff|woff2|ttf|otf|eot|svg|png|jpg|jpeg|gif|webp|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# ----------------
+# CUSTOM ERROR PAGES
+# ----------------
+ErrorDocument 404 /index.html
+ErrorDocument 500 /index.html
+
+# ----------------
+# BLOCK SENSITIVE FILES
+# ----------------
+<FilesMatch "^\.">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+<FilesMatch "(^#.*#|\.(bak|config|dist|fla|inc|ini|log|psd|sh|sql|sw[op])|~)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# Block access to source maps in production (optional)
+<FilesMatch "\.map$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# ----------------
+# DISABLE DIRECTORY LISTING
+# ----------------
+Options -Indexes
+
+# ----------------
+# SPA ROUTING (React Router)
+# Handle client-side routing - serve index.html for all routes
+# ----------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Don't rewrite files or directories
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Rewrite everything else to index.html
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# ============================================
+# END .htaccess
+# ============================================
