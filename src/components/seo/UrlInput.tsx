@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Globe, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Globe, Plus, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnalysisConfig, defaultConfig } from '@/types/seo';
+import { AnalysisConfig, defaultConfig, checkCategories, CheckCategory } from '@/types/seo';
 
 interface UrlInputProps {
   onSubmit: (config: AnalysisConfig) => void;
@@ -171,6 +172,110 @@ export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputPro
                 ))}
               </div>
             )}
+          </div>
+
+          {/* SEO Check Categories */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">SEO Checks to Run</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfig(prev => ({ ...prev, selectedCategories: checkCategories.map(c => c.id) }))}
+                  disabled={isRunning}
+                >
+                  <Check className="mr-1 h-3 w-3" />
+                  Select All
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfig(prev => ({ ...prev, selectedCategories: [] }))}
+                  disabled={isRunning}
+                >
+                  Clear All
+                </Button>
+              </div>
+            </div>
+
+            {/* SEO Categories */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">SEO & Technical</h4>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {checkCategories
+                  .filter(cat => cat.group === 'seo')
+                  .map(cat => (
+                    <label
+                      key={cat.id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${
+                        config.selectedCategories.includes(cat.id)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={config.selectedCategories.includes(cat.id)}
+                        onCheckedChange={(checked) => {
+                          setConfig(prev => ({
+                            ...prev,
+                            selectedCategories: checked
+                              ? [...prev.selectedCategories, cat.id]
+                              : prev.selectedCategories.filter(id => id !== cat.id)
+                          }));
+                        }}
+                        disabled={isRunning}
+                      />
+                      <div className="space-y-0.5">
+                        <span className="text-sm font-medium leading-none">{cat.label}</span>
+                        <p className="text-xs text-muted-foreground">{cat.description}</p>
+                      </div>
+                    </label>
+                  ))}
+              </div>
+            </div>
+
+            {/* Marketing & Analytics Categories */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Marketing & Analytics</h4>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {checkCategories
+                  .filter(cat => cat.group === 'marketing')
+                  .map(cat => (
+                    <label
+                      key={cat.id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 ${
+                        config.selectedCategories.includes(cat.id)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={config.selectedCategories.includes(cat.id)}
+                        onCheckedChange={(checked) => {
+                          setConfig(prev => ({
+                            ...prev,
+                            selectedCategories: checked
+                              ? [...prev.selectedCategories, cat.id]
+                              : prev.selectedCategories.filter(id => id !== cat.id)
+                          }));
+                        }}
+                        disabled={isRunning}
+                      />
+                      <div className="space-y-0.5">
+                        <span className="text-sm font-medium leading-none">{cat.label}</span>
+                        <p className="text-xs text-muted-foreground">{cat.description}</p>
+                      </div>
+                    </label>
+                  ))}
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              {config.selectedCategories.length} of {checkCategories.length} checks selected
+            </p>
           </div>
 
           {/* Advanced Options */}
