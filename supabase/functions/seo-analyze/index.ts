@@ -321,7 +321,7 @@ function extractInternalUrls(html: string, baseUrl: string): string[] {
 function generateIssues(homepage: PageAnalysis, robots: RobotsInfo, pages: PageAnalysis[], config: AnalysisConfig): Issue[] {
   const issues: Issue[] = [];
   
-  // Check meta description
+// Check meta description
   const pagesWithoutDescription = pages.filter(p => !p.metaDescription || p.metaDescription.length === 0);
   if (!homepage.metaDescription || pagesWithoutDescription.length > 0) {
     issues.push({
@@ -329,7 +329,7 @@ function generateIssues(homepage: PageAnalysis, robots: RobotsInfo, pages: PageA
       title: 'Missing or empty meta description',
       severity: 'high',
       category: 'on-page',
-      whyItMatters: 'Meta descriptions appear in search results and influence click-through rates. Pages without descriptions may show random text snippets, reducing clicks.',
+      whyItMatters: 'Meta descriptions appear in search results and directly influence click-through rates (CTR). Pages without descriptions may display random text snippets, reducing user clicks by up to 50% and impacting your organic traffic.',
       evidence: [
         ...(!homepage.metaDescription ? ['Homepage has no meta description tag'] : []),
         ...(pagesWithoutDescription.length > 0 ? [`${pagesWithoutDescription.length} page(s) missing descriptions`] : []),
@@ -339,18 +339,64 @@ function generateIssues(homepage: PageAnalysis, robots: RobotsInfo, pages: PageA
         ...pagesWithoutDescription.map(p => p.url),
       ],
       fixSteps: [
-        'Add a unique meta description to each page',
-        'Keep descriptions between 150-160 characters',
-        'Include primary keywords naturally',
-        'Write compelling copy that encourages clicks',
+        'Step 1: Open your page source code or CMS editor',
+        'Step 2: Locate the <head> section of your HTML',
+        'Step 3: Add a unique meta description tag for each page',
+        'Step 4: Write 150-160 characters that accurately describe the page content',
+        'Step 5: Include your primary keyword naturally within the first 120 characters',
+        'Step 6: Add a compelling call-to-action or value proposition',
+        'Step 7: Test the preview using Google Search Console or an SEO tool',
       ],
       platformFixSteps: {
-        wordpress: ['Install Yoast SEO or Rank Math plugin', 'Edit each page and scroll to the SEO meta box', 'Enter your meta description in the "Meta description" field', 'Save and check preview'],
-        shopify: ['Go to Online Store > Pages or Products', 'Click on the page to edit', 'Scroll to "Search engine listing preview" and click Edit', 'Enter description and save'],
-        custom: ['Add <meta name="description" content="Your description here"> to the <head> section', 'Ensure each page has a unique description'],
+        wordpress: [
+          'Step 1: Install Yoast SEO plugin (free) from Plugins > Add New',
+          'Step 2: After activation, edit the page where description is missing',
+          'Step 3: Scroll down to the Yoast SEO meta box below the content editor',
+          'Step 4: Click "Edit snippet" to expand the preview editor',
+          'Step 5: Enter your meta description (aim for 150-160 characters)',
+          'Step 6: The traffic light indicator shows green when optimal',
+          'Step 7: Click "Update" to save the page',
+          'Step 8: Use "Preview" to verify changes appear correctly',
+        ],
+        shopify: [
+          'Step 1: From admin panel, go to Online Store > Pages (or Products)',
+          'Step 2: Click on the page needing a meta description',
+          'Step 3: Scroll to "Search engine listing preview" section',
+          'Step 4: Click "Edit website SEO" to expand options',
+          'Step 5: Enter your description in the "Description" field',
+          'Step 6: Keep it under 160 characters - counter shows remaining',
+          'Step 7: Click "Save" to apply changes',
+          'Step 8: Wait 24-48 hours for Google to re-index',
+        ],
+        webflow: [
+          'Step 1: Open your project in the Webflow Designer',
+          'Step 2: Select the page from the Pages panel (left sidebar)',
+          'Step 3: Click the gear icon to open Page Settings',
+          'Step 4: Scroll to "SEO Settings" section',
+          'Step 5: Enter your meta description in the "Meta Description" field',
+          'Step 6: Click "Save" and then "Publish" to make live',
+        ],
+        custom: [
+          'Step 1: Open your HTML file in a code editor',
+          'Step 2: Locate the <head> section',
+          'Step 3: Add: <meta name="description" content="Your description here">',
+          'Step 4: Ensure description is unique per page',
+          'Step 5: Upload the modified file to your server',
+          'Step 6: Clear any server-side or CDN cache',
+        ],
       },
-      snippets: ['<meta name="description" content="Your compelling page description here. Keep it under 160 characters and include your main keyword.">'],
-      verifySteps: ['View page source and confirm meta description tag exists', 'Use Google Search Console URL Inspection tool'],
+      snippets: ['<meta name="description" content="Your compelling page description here. Keep it under 160 characters and include your main keyword. Add a call-to-action.">'],
+      verifySteps: [
+        'Step 1: View page source (Ctrl+U or Cmd+Option+U) and search for "description"',
+        'Step 2: Use Google Search Console > URL Inspection to check indexed description',
+        'Step 3: Share URL on social media preview tools to verify display',
+      ],
+      mistakesToAvoid: [
+        'Do not copy the same description to multiple pages - each must be unique',
+        'Do not stuff keywords unnaturally - write for humans first',
+        'Do not exceed 160 characters - anything beyond gets truncated',
+        'Do not leave dynamic placeholders like {page_title} unresolved',
+      ],
       manualCheckRequired: false,
     });
   }
@@ -518,18 +564,49 @@ function generateIssues(homepage: PageAnalysis, robots: RobotsInfo, pages: PageA
     });
   }
   
-  // Check internal linking
+// Check internal linking
   if (homepage.internalLinks < 5) {
     issues.push({
       id: 'low-internal-links',
       title: 'Low internal link count on homepage',
       severity: 'medium',
       category: 'internal-linking',
-      whyItMatters: 'Internal links help search engines discover content and pass authority. Too few internal links can limit crawling and indexing.',
+      whyItMatters: 'Internal links help search engines discover content, distribute page authority (link equity), and improve user navigation. Pages with few internal links may be poorly indexed.',
       evidence: [`Homepage has only ${homepage.internalLinks} internal links`],
       affectedUrls: [homepage.url],
-      fixSteps: ['Add more internal links to key pages', 'Use descriptive anchor text', 'Ensure important pages are linked from homepage'],
-      verifySteps: ['Count internal links on homepage'],
+      fixSteps: [
+        'Step 1: Identify your most important pages (products, services, key content)',
+        'Step 2: Add text links to these pages within your homepage content',
+        'Step 3: Use descriptive anchor text (not "click here")',
+        'Step 4: Add a clear navigation menu linking to main sections',
+        'Step 5: Consider adding a "Featured" or "Popular" section with links',
+        'Step 6: Ensure footer contains links to important pages',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Edit your homepage in the WordPress editor',
+          'Step 2: Add text links using the link button (Ctrl+K)',
+          'Step 3: Use descriptive anchor text for each link',
+          'Step 4: Check Appearance > Menus for navigation links',
+          'Step 5: Add a widget with popular/recent posts if applicable',
+        ],
+        shopify: [
+          'Step 1: Go to Online Store > Navigation',
+          'Step 2: Edit your main menu to include key pages',
+          'Step 3: Edit your homepage sections to add featured collections/products',
+          'Step 4: Add footer links to important pages',
+        ],
+        custom: [
+          'Step 1: Edit your HTML to add <a href="/page">descriptive text</a> links',
+          'Step 2: Ensure navigation includes all major sections',
+          'Step 3: Add a sitemap-style footer with key page links',
+        ],
+      },
+      verifySteps: [
+        'Step 1: Use browser developer tools to count <a> tags on homepage',
+        'Step 2: Verify all important pages are reachable from homepage',
+        'Step 3: Use a crawler tool to visualize internal link structure',
+      ],
       manualCheckRequired: false,
     });
   }
@@ -541,12 +618,131 @@ function generateIssues(homepage: PageAnalysis, robots: RobotsInfo, pages: PageA
       title: 'Thin content detected',
       severity: 'medium',
       category: 'content',
-      whyItMatters: 'Pages with very little content may be seen as low quality by search engines. Aim for comprehensive, valuable content.',
+      whyItMatters: 'Pages with minimal text content provide limited value to users and search engines. Google considers comprehensive content as a quality signal. Aim for at least 300-500 words of unique, valuable content.',
       evidence: [`Homepage has only ${homepage.wordCount} words`],
       affectedUrls: [homepage.url],
-      fixSteps: ['Add more valuable, relevant content', 'Aim for at least 300-500 words on key pages'],
-      verifySteps: ['Review content length and quality'],
+      fixSteps: [
+        'Step 1: Audit existing content for opportunities to expand',
+        'Step 2: Add descriptive sections about your products/services',
+        'Step 3: Include customer testimonials or case studies',
+        'Step 4: Add FAQ sections with common questions and answers',
+        'Step 5: Write unique, valuable content (not filler text)',
+        'Step 6: Aim for at least 300-500 words on the homepage',
+        'Step 7: Ensure content is scannable with headers and bullet points',
+      ],
+      verifySteps: [
+        'Step 1: Use a word counter tool on your visible page content',
+        'Step 2: Ensure new content reads naturally and provides value',
+        'Step 3: Check that content is unique (not duplicated from other sites)',
+      ],
+      mistakesToAvoid: [
+        'Do not add low-quality filler text just to increase word count',
+        'Do not hide text (white text on white background) - this is penalized',
+        'Do not duplicate content from other pages on your site',
+      ],
       manualCheckRequired: true,
+    });
+  }
+  
+  // Check HTTPS
+  const urlObj = new URL(config.url);
+  if (urlObj.protocol !== 'https:') {
+    issues.push({
+      id: 'no-https',
+      title: 'Website not using HTTPS',
+      severity: 'critical',
+      category: 'security',
+      whyItMatters: 'HTTPS is a confirmed Google ranking factor. Sites without HTTPS show "Not Secure" warnings in browsers, which damages user trust and can significantly hurt conversions and rankings.',
+      evidence: ['Website is served over HTTP instead of HTTPS'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Purchase or obtain a free SSL certificate (Let\'s Encrypt is free)',
+        'Step 2: Install the SSL certificate on your web server',
+        'Step 3: Update your site configuration to serve content over HTTPS',
+        'Step 4: Set up 301 redirects from HTTP to HTTPS for all URLs',
+        'Step 5: Update internal links to use HTTPS',
+        'Step 6: Update canonical tags to use HTTPS URLs',
+        'Step 7: Submit HTTPS version to Google Search Console',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Contact your hosting provider - many offer free SSL',
+          'Step 2: Install the "Really Simple SSL" plugin',
+          'Step 3: Activate the plugin and follow the setup wizard',
+          'Step 4: Update WordPress Address and Site Address in Settings > General',
+          'Step 5: Clear all caches after migration',
+        ],
+        shopify: [
+          'Step 1: Shopify provides free SSL automatically',
+          'Step 2: Go to Online Store > Domains',
+          'Step 3: Ensure your domain shows "SSL pending" or "SSL enabled"',
+          'Step 4: If using custom domain, verify DNS settings are correct',
+        ],
+        custom: [
+          'Step 1: Obtain SSL certificate from Let\'s Encrypt (free) or your CA',
+          'Step 2: Install certificate on your web server (Apache/Nginx)',
+          'Step 3: Configure server to redirect HTTP to HTTPS',
+          'Step 4: Update all hardcoded HTTP links in your code',
+        ],
+      },
+      snippets: [
+        '# Apache .htaccess redirect\nRewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]',
+        '# Nginx redirect\nserver {\n  listen 80;\n  server_name example.com;\n  return 301 https://$server_name$request_uri;\n}',
+      ],
+      verifySteps: [
+        'Step 1: Visit your website and check for the padlock icon in browser',
+        'Step 2: Try accessing HTTP version - should redirect to HTTPS',
+        'Step 3: Use SSL Labs (ssllabs.com) to test your certificate',
+      ],
+      manualCheckRequired: false,
+    });
+  }
+  
+  // Check meta description length
+  if (homepage.metaDescription && (homepage.metaDescriptionLength! < 120 || homepage.metaDescriptionLength! > 160)) {
+    issues.push({
+      id: 'meta-description-length',
+      title: homepage.metaDescriptionLength! < 120 ? 'Meta description too short' : 'Meta description too long',
+      severity: 'low',
+      category: 'on-page',
+      whyItMatters: 'Meta descriptions should be 120-160 characters. Too short misses opportunity to convey value; too long gets truncated in search results.',
+      evidence: [`Homepage meta description is ${homepage.metaDescriptionLength} characters`],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Review your current meta description',
+        'Step 2: Rewrite to be between 120-160 characters',
+        'Step 3: Include primary keyword in the first 120 characters',
+        'Step 4: End with a call-to-action if space permits',
+      ],
+      verifySteps: ['Step 1: Check meta description length using a character counter'],
+      manualCheckRequired: false,
+    });
+  }
+  
+  // Check for Twitter Cards
+  if (!homepage.hasTwitterCards) {
+    issues.push({
+      id: 'missing-twitter-cards',
+      title: 'Missing Twitter Card meta tags',
+      severity: 'low',
+      category: 'on-page',
+      whyItMatters: 'Twitter Cards control how your content appears when shared on Twitter/X. Without them, shares may display poorly formatted previews.',
+      evidence: ['No Twitter Card (twitter:) meta tags found'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Add twitter:card meta tag (summary_large_image recommended)',
+        'Step 2: Add twitter:title and twitter:description tags',
+        'Step 3: Add twitter:image tag with a high-quality image URL',
+        'Step 4: Optionally add twitter:site with your Twitter handle',
+      ],
+      snippets: [
+        '<meta name="twitter:card" content="summary_large_image">',
+        '<meta name="twitter:title" content="Your Page Title">',
+        '<meta name="twitter:description" content="Description for Twitter shares">',
+        '<meta name="twitter:image" content="https://example.com/image.jpg">',
+      ],
+      verifySteps: ['Step 1: Use Twitter Card Validator to test your page'],
+      manualCheckRequired: false,
     });
   }
   

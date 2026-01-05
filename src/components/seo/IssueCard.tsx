@@ -129,45 +129,45 @@ export function IssueCard({ issue, index }: IssueCardProps) {
               <h4 className="text-sm font-medium mb-2">How to Fix</h4>
               {issue.platformFixSteps ? (
                 <Tabs defaultValue="custom" className="w-full">
-                  <TabsList className="grid grid-cols-4 h-auto">
-                    <TabsTrigger value="custom" className="text-xs py-1.5">Custom</TabsTrigger>
-                    <TabsTrigger value="wordpress" className="text-xs py-1.5">WordPress</TabsTrigger>
-                    <TabsTrigger value="shopify" className="text-xs py-1.5">Shopify</TabsTrigger>
-                    <TabsTrigger value="webflow" className="text-xs py-1.5">Webflow</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1">
+                    <TabsTrigger value="custom" className="text-xs py-1.5 px-2">Custom/HTML</TabsTrigger>
+                    <TabsTrigger value="wordpress" className="text-xs py-1.5 px-2">WordPress</TabsTrigger>
+                    <TabsTrigger value="shopify" className="text-xs py-1.5 px-2">Shopify</TabsTrigger>
+                    <TabsTrigger value="webflow" className="text-xs py-1.5 px-2">Webflow</TabsTrigger>
                   </TabsList>
-                  <TabsContent value="custom" className="mt-2">
-                    <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                  <TabsContent value="custom" className="mt-3">
+                    <ol className="list-decimal list-outside ml-4 text-sm text-muted-foreground space-y-1.5">
                       {(issue.platformFixSteps.custom || issue.fixSteps).map((step, i) => (
-                        <li key={i}>{step}</li>
+                        <li key={i} className="pl-1">{step}</li>
                       ))}
                     </ol>
                   </TabsContent>
-                  <TabsContent value="wordpress" className="mt-2">
-                    <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                  <TabsContent value="wordpress" className="mt-3">
+                    <ol className="list-decimal list-outside ml-4 text-sm text-muted-foreground space-y-1.5">
                       {(issue.platformFixSteps.wordpress || issue.fixSteps).map((step, i) => (
-                        <li key={i}>{step}</li>
+                        <li key={i} className="pl-1">{step}</li>
                       ))}
                     </ol>
                   </TabsContent>
-                  <TabsContent value="shopify" className="mt-2">
-                    <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                  <TabsContent value="shopify" className="mt-3">
+                    <ol className="list-decimal list-outside ml-4 text-sm text-muted-foreground space-y-1.5">
                       {(issue.platformFixSteps.shopify || issue.fixSteps).map((step, i) => (
-                        <li key={i}>{step}</li>
+                        <li key={i} className="pl-1">{step}</li>
                       ))}
                     </ol>
                   </TabsContent>
-                  <TabsContent value="webflow" className="mt-2">
-                    <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                  <TabsContent value="webflow" className="mt-3">
+                    <ol className="list-decimal list-outside ml-4 text-sm text-muted-foreground space-y-1.5">
                       {(issue.platformFixSteps.webflow || issue.fixSteps).map((step, i) => (
-                        <li key={i}>{step}</li>
+                        <li key={i} className="pl-1">{step}</li>
                       ))}
                     </ol>
                   </TabsContent>
                 </Tabs>
               ) : (
-                <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                <ol className="list-decimal list-outside ml-4 text-sm text-muted-foreground space-y-1.5">
                   {issue.fixSteps.map((step, i) => (
-                    <li key={i}>{step}</li>
+                    <li key={i} className="pl-1">{step}</li>
                   ))}
                 </ol>
               )}
