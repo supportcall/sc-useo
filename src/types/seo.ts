@@ -85,6 +85,56 @@ export interface CrawlResult {
   error?: string;
 }
 
+export type CheckCategory = 
+  | 'indexing'
+  | 'meta-tags'
+  | 'headings'
+  | 'content'
+  | 'images'
+  | 'internal-linking'
+  | 'structured-data'
+  | 'technical'
+  | 'performance'
+  | 'security'
+  | 'gtm'
+  | 'ga4'
+  | 'search-console'
+  | 'clarity'
+  | 'business-profile'
+  | 'google-ads'
+  | 'conversion-tracking'
+  | 'merchant-center';
+
+export interface CheckCategoryOption {
+  id: CheckCategory;
+  label: string;
+  description: string;
+  group: 'seo' | 'marketing';
+}
+
+export const checkCategories: CheckCategoryOption[] = [
+  // SEO Categories
+  { id: 'indexing', label: 'Indexing & Crawlability', description: 'robots.txt, sitemap, canonical tags', group: 'seo' },
+  { id: 'meta-tags', label: 'Meta Tags', description: 'Title, description, viewport, Open Graph', group: 'seo' },
+  { id: 'headings', label: 'Headings Structure', description: 'H1, H2-H6 hierarchy', group: 'seo' },
+  { id: 'content', label: 'Content Quality', description: 'Word count, readability, thin content', group: 'seo' },
+  { id: 'images', label: 'Image Optimization', description: 'Alt text, file sizes, formats', group: 'seo' },
+  { id: 'internal-linking', label: 'Internal Linking', description: 'Link structure, orphan pages', group: 'seo' },
+  { id: 'structured-data', label: 'Structured Data', description: 'JSON-LD, schema.org markup', group: 'seo' },
+  { id: 'technical', label: 'Technical SEO', description: 'HTTPS, mobile-friendly, redirects', group: 'seo' },
+  { id: 'performance', label: 'Performance', description: 'Page speed, Core Web Vitals', group: 'seo' },
+  { id: 'security', label: 'Security', description: 'HTTPS, mixed content, headers', group: 'seo' },
+  // Marketing & Analytics Categories
+  { id: 'gtm', label: 'Google Tag Manager', description: 'GTM container detection', group: 'marketing' },
+  { id: 'ga4', label: 'Google Analytics 4', description: 'GA4 measurement ID detection', group: 'marketing' },
+  { id: 'search-console', label: 'Google Search Console', description: 'Site verification meta tag', group: 'marketing' },
+  { id: 'clarity', label: 'Microsoft Clarity', description: 'Clarity tracking code detection', group: 'marketing' },
+  { id: 'business-profile', label: 'Google Business Profile', description: 'LocalBusiness schema markup', group: 'marketing' },
+  { id: 'google-ads', label: 'Google Ads Tag', description: 'Google Ads gtag detection', group: 'marketing' },
+  { id: 'conversion-tracking', label: 'Conversion Tracking', description: 'Google Ads conversion setup', group: 'marketing' },
+  { id: 'merchant-center', label: 'Merchant Center', description: 'Product schema for free listings', group: 'marketing' },
+];
+
 export interface AnalysisConfig {
   url: string;
   competitors: string[];
@@ -95,6 +145,7 @@ export interface AnalysisConfig {
   checkMobile: boolean;
   checkDesktop: boolean;
   usePSI: boolean;
+  selectedCategories: CheckCategory[];
 }
 
 export interface AnalysisStage {
@@ -149,6 +200,7 @@ export const defaultConfig: AnalysisConfig = {
   checkMobile: true,
   checkDesktop: true,
   usePSI: false,
+  selectedCategories: checkCategories.map(c => c.id), // All selected by default
 };
 
 export const analysisStages: AnalysisStage[] = [
