@@ -39,6 +39,21 @@ interface PageAnalysis {
   imagesWithoutAlt: number;
   totalImages: number;
   redirectChain?: string[];
+  // Marketing & Analytics Detection
+  hasGTM: boolean;
+  gtmId?: string;
+  hasGA4: boolean;
+  ga4Id?: string;
+  hasGoogleSearchConsoleVerification: boolean;
+  gscVerificationMethod?: string;
+  hasMicrosoftClarity: boolean;
+  clarityId?: string;
+  hasGoogleAdsTag: boolean;
+  googleAdsId?: string;
+  hasGoogleAdsConversion: boolean;
+  hasLocalBusinessSchema: boolean;
+  hasProductSchema: boolean;
+  hasMerchantCenterLink: boolean;
 }
 
 interface RobotsInfo {
@@ -120,18 +135,6 @@ function parseHTML(html: string, baseUrl: string): PageAnalysis {
   // Check Twitter Cards
   const hasTwitterCards = /<meta[^>]+name=["']twitter:/i.test(html);
   
-  // Check JSON-LD
-  const jsonLdMatches = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([^<]+)<\/script>/gi) || [];
-  const hasJsonLd = jsonLdMatches.length > 0;
-  const jsonLdTypes: string[] = [];
-  jsonLdMatches.forEach(match => {
-    try {
-      const json = match.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
-      const parsed = JSON.parse(json);
-      if (parsed['@type']) jsonLdTypes.push(parsed['@type']);
-    } catch { /* ignore parse errors */ }
-  });
-  
   // Count words (rough estimate from body text)
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   const bodyText = bodyMatch ? bodyMatch[1].replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -167,6 +170,85 @@ function parseHTML(html: string, baseUrl: string): PageAnalysis {
     }
   });
   
+  // Check JSON-LD and extract schema types
+  const jsonLdMatches = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi) || [];
+  const hasJsonLd = jsonLdMatches.length > 0;
+  const jsonLdTypes: string[] = [];
+  let hasLocalBusinessSchema = false;
+  let hasProductSchema = false;
+  jsonLdMatches.forEach(match => {
+    try {
+      const json = match.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '').trim();
+      const parsed = JSON.parse(json);
+      const extractTypes = (obj: any) => {
+        if (obj['@type']) {
+          const types = Array.isArray(obj['@type']) ? obj['@type'] : [obj['@type']];
+          types.forEach((t: string) => {
+            jsonLdTypes.push(t);
+            if (t === 'LocalBusiness' || t.includes('LocalBusiness') || 
+                t === 'Organization' || t === 'Store' || t === 'Restaurant' ||
+                t === 'Hotel' || t === 'MedicalBusiness' || t === 'LegalService' ||
+                t === 'RealEstateAgent' || t === 'FinancialService') {
+              hasLocalBusinessSchema = true;
+            }
+            if (t === 'Product' || t === 'ProductGroup' || t === 'Offer' || 
+                t === 'AggregateOffer' || t === 'ItemList') {
+              hasProductSchema = true;
+            }
+          });
+        }
+        if (obj['@graph'] && Array.isArray(obj['@graph'])) {
+          obj['@graph'].forEach(extractTypes);
+        }
+      };
+      extractTypes(parsed);
+    } catch { /* ignore parse errors */ }
+  });
+  
+  // Detect Google Tag Manager (GTM)
+  const gtmMatch = html.match(/GTM-[A-Z0-9]+/i) || 
+                   html.match(/googletagmanager\.com\/gtm\.js\?id=(GTM-[A-Z0-9]+)/i) ||
+                   html.match(/googletagmanager\.com\/gtag\/js\?id=/i);
+  const hasGTM = !!gtmMatch || html.includes('googletagmanager.com/gtm.js');
+  const gtmIdMatch = html.match(/GTM-[A-Z0-9]+/i);
+  const gtmId = gtmIdMatch ? gtmIdMatch[0] : undefined;
+  
+  // Detect Google Analytics 4 (GA4)
+  const ga4Match = html.match(/G-[A-Z0-9]+/i) ||
+                   html.match(/gtag\(['"]config['"],\s*['"]G-[A-Z0-9]+['"]/i);
+  const hasGA4 = !!ga4Match || html.includes('googletagmanager.com/gtag/js');
+  const ga4IdMatch = html.match(/G-[A-Z0-9]+/i);
+  const ga4Id = ga4IdMatch ? ga4IdMatch[0] : undefined;
+  
+  // Detect Google Search Console verification
+  const gscMetaMatch = html.match(/<meta[^>]+name=["']google-site-verification["'][^>]+content=["']([^"']*)["']/i) ||
+                       html.match(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']google-site-verification["']/i);
+  const hasGoogleSearchConsoleVerification = !!gscMetaMatch;
+  const gscVerificationMethod = gscMetaMatch ? 'meta-tag' : undefined;
+  
+  // Detect Microsoft Clarity
+  const clarityMatch = html.match(/clarity\.ms\/tag\/([a-z0-9]+)/i) ||
+                       html.match(/clarity\(["']set["'],\s*["']([^"']+)["']/i);
+  const hasMicrosoftClarity = !!clarityMatch || html.includes('clarity.ms/tag/');
+  const clarityIdMatch = html.match(/clarity\.ms\/tag\/([a-z0-9]+)/i);
+  const clarityId = clarityIdMatch ? clarityIdMatch[1] : undefined;
+  
+  // Detect Google Ads Tag
+  const googleAdsMatch = html.match(/AW-[0-9]+/i) ||
+                         html.match(/googleads\.g\.doubleclick\.net/i) ||
+                         html.match(/gtag\(['"]config['"],\s*['"]AW-[0-9]+['"]/i);
+  const hasGoogleAdsTag = !!googleAdsMatch;
+  const googleAdsIdMatch = html.match(/AW-[0-9]+/i);
+  const googleAdsId = googleAdsIdMatch ? googleAdsIdMatch[0] : undefined;
+  
+  // Detect Google Ads Conversion Tracking
+  const hasGoogleAdsConversion = html.includes('gtag_report_conversion') || 
+                                  html.includes("gtag('event', 'conversion'") ||
+                                  html.includes('googleadservices.com/pagead/conversion');
+  
+  // Detect Merchant Center Link (for e-commerce)
+  const hasMerchantCenterLink = hasProductSchema && (hasGTM || hasGA4);
+  
   return {
     url: baseUrl,
     status: 200,
@@ -190,6 +272,21 @@ function parseHTML(html: string, baseUrl: string): PageAnalysis {
     externalLinks,
     imagesWithoutAlt,
     totalImages,
+    // Marketing & Analytics
+    hasGTM,
+    gtmId,
+    hasGA4,
+    ga4Id,
+    hasGoogleSearchConsoleVerification,
+    gscVerificationMethod,
+    hasMicrosoftClarity,
+    clarityId,
+    hasGoogleAdsTag,
+    googleAdsId,
+    hasGoogleAdsConversion,
+    hasLocalBusinessSchema,
+    hasProductSchema,
+    hasMerchantCenterLink,
   };
 }
 
@@ -743,6 +840,479 @@ function generateIssues(homepage: PageAnalysis, robots: RobotsInfo, pages: PageA
       ],
       verifySteps: ['Step 1: Use Twitter Card Validator to test your page'],
       manualCheckRequired: false,
+    });
+  }
+  
+  // ============ MARKETING & ANALYTICS TOOLS ============
+  
+  // Check Google Tag Manager (GTM)
+  if (!homepage.hasGTM) {
+    issues.push({
+      id: 'missing-gtm',
+      title: 'Google Tag Manager not detected',
+      severity: 'medium',
+      category: 'marketing',
+      whyItMatters: 'Google Tag Manager (GTM) is a free tool that lets you manage all tracking codes from one place. Without it, adding new marketing tags requires code changes, slowing down campaigns and risking errors.',
+      evidence: ['No GTM container script detected on the homepage'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Go to tagmanager.google.com and sign in with your Google account',
+        'Step 2: Click "Create Account" and enter your company name',
+        'Step 3: Create a "Container" for your website (Web type)',
+        'Step 4: Copy the two GTM code snippets provided',
+        'Step 5: Paste the first snippet high in the <head> section of all pages',
+        'Step 6: Paste the second snippet immediately after the opening <body> tag',
+        'Step 7: Use GTM Preview mode to verify installation',
+        'Step 8: Publish your container when ready',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Install "Site Kit by Google" plugin (recommended) or "GTM4WP"',
+          'Step 2: Connect your Google account when prompted',
+          'Step 3: Link your GTM container in the plugin settings',
+          'Step 4: The plugin automatically adds GTM code to all pages',
+          'Step 5: Verify with GTM Preview or Tag Assistant extension',
+        ],
+        shopify: [
+          'Step 1: From Shopify admin, go to Online Store > Themes',
+          'Step 2: Click Actions > Edit code',
+          'Step 3: In theme.liquid, paste GTM head code after <head>',
+          'Step 4: Paste GTM body code after <body>',
+          'Step 5: Click Save and test with GTM Preview mode',
+        ],
+        custom: [
+          'Step 1: Create a GTM account at tagmanager.google.com',
+          'Step 2: Get your GTM container ID (GTM-XXXXXXX)',
+          'Step 3: Add GTM script tags to your HTML template',
+          'Step 4: Deploy to all pages via your template system',
+        ],
+      },
+      snippets: [
+        `<!-- GTM Head Code (place high in <head>) -->\n<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\nnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\nj=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>`,
+        `<!-- GTM Body Code (place after <body>) -->\n<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"\nheight="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`,
+      ],
+      verifySteps: [
+        'Step 1: Install Google Tag Assistant Chrome extension',
+        'Step 2: Visit your website and click the extension icon',
+        'Step 3: GTM should show as green (working correctly)',
+        'Step 4: Or use GTM Preview mode directly in tagmanager.google.com',
+      ],
+      mistakesToAvoid: [
+        'Do not add GTM code inside another tag manager or duplicate installations',
+        'Do not forget the noscript fallback tag after <body>',
+        'Do not leave GTM in preview/debug mode in production',
+      ],
+      manualCheckRequired: false,
+    });
+  }
+  
+  // Check Google Analytics 4 (GA4)
+  if (!homepage.hasGA4) {
+    issues.push({
+      id: 'missing-ga4',
+      title: 'Google Analytics 4 (GA4) not detected',
+      severity: 'high',
+      category: 'marketing',
+      whyItMatters: 'Google Analytics 4 is essential for understanding your website traffic, user behavior, and conversions. Without analytics, you cannot measure marketing effectiveness or make data-driven decisions.',
+      evidence: ['No GA4 tracking code (G-XXXXXXX) detected on the homepage'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Go to analytics.google.com and sign in',
+        'Step 2: Click "Admin" (gear icon) > "Create Property"',
+        'Step 3: Enter your property name and select your timezone/currency',
+        'Step 4: Complete the business information questions',
+        'Step 5: Accept terms and create your data stream (Web)',
+        'Step 6: Copy your Measurement ID (starts with G-)',
+        'Step 7: If using GTM: Add a GA4 Configuration tag with this ID',
+        'Step 8: If not using GTM: Add the gtag.js code to your site',
+        'Step 9: Wait 24-48 hours for data to appear in reports',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Install "Site Kit by Google" plugin (recommended)',
+          'Step 2: Connect your Google account and Analytics',
+          'Step 3: Site Kit automatically configures GA4 tracking',
+          'Step 4: Or manually add GA4 via a GTM plugin',
+          'Step 5: Verify in GA4 Realtime report',
+        ],
+        shopify: [
+          'Step 1: Go to Online Store > Preferences',
+          'Step 2: Scroll to "Google Analytics"',
+          'Step 3: Paste your GA4 Measurement ID (G-XXXXXXX)',
+          'Step 4: Enable enhanced ecommerce if selling products',
+          'Step 5: Click Save and verify in GA4 Realtime',
+        ],
+        custom: [
+          'Step 1: Add gtag.js script to your HTML <head>',
+          'Step 2: Initialize with your G-XXXXXXX Measurement ID',
+          'Step 3: Deploy across all pages',
+          'Step 4: Test using GA4 Realtime report',
+        ],
+      },
+      snippets: [
+        `<!-- GA4 Tracking Code (add to <head>) -->\n<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>\n<script>\n  window.dataLayer = window.dataLayer || [];\n  function gtag(){dataLayer.push(arguments);}\n  gtag('js', new Date());\n  gtag('config', 'G-XXXXXXX');\n</script>`,
+      ],
+      verifySteps: [
+        'Step 1: Open GA4 and go to Reports > Realtime',
+        'Step 2: Visit your website in another tab',
+        'Step 3: You should see yourself as an active user within 30 seconds',
+        'Step 4: Use Tag Assistant or GTM Preview to verify tag firing',
+      ],
+      mistakesToAvoid: [
+        'Do not use old Universal Analytics (UA-) codes - they stopped collecting data',
+        'Do not install GA4 both directly and through GTM (causes double-counting)',
+        'Do not forget to set up conversions/key events for important actions',
+      ],
+      manualCheckRequired: false,
+    });
+  }
+  
+  // Check Google Search Console verification
+  if (!homepage.hasGoogleSearchConsoleVerification) {
+    issues.push({
+      id: 'missing-gsc-verification',
+      title: 'Google Search Console verification not detected',
+      severity: 'high',
+      category: 'marketing',
+      whyItMatters: 'Google Search Console is a free tool that shows how Google sees your site, including indexing issues, search queries, and manual penalties. Without it, you are blind to critical SEO problems.',
+      evidence: ['No google-site-verification meta tag found on the homepage'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Go to search.google.com/search-console',
+        'Step 2: Click "Add Property" and enter your website URL',
+        'Step 3: Choose "URL prefix" for simplest verification',
+        'Step 4: Select "HTML tag" verification method',
+        'Step 5: Copy the meta tag provided by Google',
+        'Step 6: Paste it in your homepage <head> section',
+        'Step 7: Click "Verify" in Search Console',
+        'Step 8: Submit your sitemap at Sitemaps > Add new sitemap',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Install "Site Kit by Google" or "Yoast SEO" plugin',
+          'Step 2: Both plugins have Search Console integration',
+          'Step 3: Connect your Google account when prompted',
+          'Step 4: Verification is handled automatically',
+          'Step 5: View search data directly in WordPress dashboard',
+        ],
+        shopify: [
+          'Step 1: Copy the verification code from Search Console (just the code value)',
+          'Step 2: Go to Online Store > Preferences in Shopify',
+          'Step 3: Scroll to "Google Search Console"',
+          'Step 4: Paste the verification code and Save',
+          'Step 5: Return to Search Console and click Verify',
+        ],
+        custom: [
+          'Step 1: Add the meta tag to your HTML <head>',
+          'Step 2: Alternatively, upload an HTML verification file to root',
+          'Step 3: Or verify via DNS TXT record for domain-level access',
+          'Step 4: Deploy and click Verify in Search Console',
+        ],
+      },
+      snippets: [
+        `<!-- GSC Verification (add to <head>) -->\n<meta name="google-site-verification" content="YOUR_VERIFICATION_CODE_HERE">`,
+      ],
+      verifySteps: [
+        'Step 1: View your page source and search for "google-site-verification"',
+        'Step 2: In Search Console, your property should show as "Verified"',
+        'Step 3: Check that your sitemap is submitted and processing',
+      ],
+      mistakesToAvoid: [
+        'Do not remove the verification tag after verifying - keep it permanently',
+        'Do not forget to add all URL variations (www, non-www, http, https)',
+        'Do not ignore Search Console alerts - they indicate real issues',
+      ],
+      manualCheckRequired: false,
+    });
+  }
+  
+  // Check Microsoft Clarity
+  if (!homepage.hasMicrosoftClarity) {
+    issues.push({
+      id: 'missing-clarity',
+      title: 'Microsoft Clarity not detected',
+      severity: 'low',
+      category: 'marketing',
+      whyItMatters: 'Microsoft Clarity is a free heatmap and session recording tool. It shows exactly how users interact with your site - where they click, how far they scroll, and where they get frustrated. This data is invaluable for improving conversions.',
+      evidence: ['No Microsoft Clarity tracking code detected on the homepage'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Go to clarity.microsoft.com and sign in with Microsoft account',
+        'Step 2: Click "Add new project" and enter your website URL',
+        'Step 3: Copy the Clarity tracking code provided',
+        'Step 4: Add the code to your website <head> section (or use GTM)',
+        'Step 5: Wait a few hours for recordings and heatmaps to populate',
+        'Step 6: Review the Dashboard for insights on user behavior',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Install "Microsoft Clarity" official plugin from WordPress.org',
+          'Step 2: Activate the plugin and go to Settings > Clarity',
+          'Step 3: Enter your Clarity Project ID',
+          'Step 4: Click Save - tracking begins automatically',
+          'Step 5: Or add via GTM using Clarity\'s GTM template',
+        ],
+        shopify: [
+          'Step 1: Go to Online Store > Themes > Edit code',
+          'Step 2: Open theme.liquid',
+          'Step 3: Paste Clarity code before </head>',
+          'Step 4: Save and verify in Clarity dashboard',
+        ],
+        custom: [
+          'Step 1: Get your Clarity project ID from clarity.microsoft.com',
+          'Step 2: Add the tracking script to your HTML <head>',
+          'Step 3: Deploy across all pages',
+          'Step 4: Verify recordings appear in your Clarity dashboard',
+        ],
+      },
+      snippets: [
+        `<!-- Microsoft Clarity (add to <head>) -->\n<script type="text/javascript">\n  (function(c,l,a,r,i,t,y){\n    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};\n    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;\n    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);\n  })(window,document,"clarity","script","YOUR_PROJECT_ID");\n</script>`,
+      ],
+      verifySteps: [
+        'Step 1: Visit your website after adding Clarity',
+        'Step 2: Log into Clarity dashboard within 2-3 hours',
+        'Step 3: Check if recordings and heatmaps are showing data',
+        'Step 4: Use browser dev tools to confirm clarity.ms script loads',
+      ],
+      mistakesToAvoid: [
+        'Do not forget to comply with privacy laws - Clarity has GDPR/cookie controls',
+        'Do not install on pages with sensitive data input without masking',
+        'Do not ignore the "Dead Clicks" and "Rage Clicks" metrics',
+      ],
+      manualCheckRequired: false,
+    });
+  }
+  
+  // Check Google Business Profile (LocalBusiness schema as indicator)
+  if (!homepage.hasLocalBusinessSchema) {
+    issues.push({
+      id: 'missing-local-business',
+      title: 'Google Business Profile / LocalBusiness schema not detected',
+      severity: 'medium',
+      category: 'marketing',
+      whyItMatters: 'For local businesses, Google Business Profile is essential for appearing in local search results, Google Maps, and the Knowledge Panel. LocalBusiness schema on your website reinforces this connection and improves local SEO.',
+      evidence: ['No LocalBusiness, Organization, or similar structured data found'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Claim your Google Business Profile at business.google.com',
+        'Step 2: Complete ALL business information (name, address, phone, hours)',
+        'Step 3: Verify your business (postcard, phone, or email)',
+        'Step 4: Add photos, services, and products to your profile',
+        'Step 5: Add LocalBusiness structured data to your website',
+        'Step 6: Ensure NAP (Name, Address, Phone) matches exactly everywhere',
+        'Step 7: Encourage customer reviews on your Google profile',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Install "Yoast SEO" or "Rank Math" plugin',
+          'Step 2: Go to SEO > Search Appearance > Content Types',
+          'Step 3: Configure your Organization/LocalBusiness schema',
+          'Step 4: Add your business details (address, logo, social profiles)',
+          'Step 5: Validate with Google Rich Results Test',
+        ],
+        shopify: [
+          'Step 1: Use a schema app like "JSON-LD for SEO" from App Store',
+          'Step 2: Configure your business information in the app',
+          'Step 3: Or manually add JSON-LD to theme.liquid',
+          'Step 4: Test with Google Rich Results Test',
+        ],
+        custom: [
+          'Step 1: Create LocalBusiness JSON-LD structured data',
+          'Step 2: Include name, address, phone, hours, geo coordinates',
+          'Step 3: Add to your homepage <head> or before </body>',
+          'Step 4: Validate with schema.org validator',
+        ],
+      },
+      snippets: [
+        `<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "LocalBusiness",\n  "name": "Your Business Name",\n  "image": "https://example.com/logo.jpg",\n  "telephone": "+1-555-555-5555",\n  "address": {\n    "@type": "PostalAddress",\n    "streetAddress": "123 Main Street",\n    "addressLocality": "Your City",\n    "addressRegion": "State",\n    "postalCode": "12345",\n    "addressCountry": "US"\n  },\n  "openingHoursSpecification": {\n    "@type": "OpeningHoursSpecification",\n    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],\n    "opens": "09:00",\n    "closes": "17:00"\n  },\n  "url": "https://example.com",\n  "sameAs": [\n    "https://www.facebook.com/yourbusiness",\n    "https://www.instagram.com/yourbusiness"\n  ]\n}\n</script>`,
+      ],
+      verifySteps: [
+        'Step 1: Use Google Rich Results Test on your homepage',
+        'Step 2: Search your business name on Google to check Knowledge Panel',
+        'Step 3: Verify your Google Business Profile is verified and complete',
+        'Step 4: Check Google Search Console for structured data errors',
+      ],
+      mistakesToAvoid: [
+        'Do not use inconsistent NAP across directories (name, address, phone)',
+        'Do not leave Google Business Profile incomplete',
+        'Do not ignore negative reviews - respond professionally',
+      ],
+      manualCheckRequired: true,
+    });
+  }
+  
+  // Check Google Ads Tag
+  if (!homepage.hasGoogleAdsTag) {
+    issues.push({
+      id: 'missing-google-ads',
+      title: 'Google Ads Tag not detected (free setup recommended)',
+      severity: 'low',
+      category: 'marketing',
+      whyItMatters: 'Even if you are not running paid ads yet, setting up Google Ads is free and allows you to build remarketing audiences from day one. When you are ready to advertise, you will have valuable audience data already collected.',
+      evidence: ['No Google Ads tag (AW-XXXXXXX) detected on the homepage'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Go to ads.google.com and create a free account',
+        'Step 2: Skip campaign creation for now (optional)',
+        'Step 3: Go to Tools & Settings > Setup > Google Tag',
+        'Step 4: Find your Google Ads Tag ID (AW-XXXXXXXXX)',
+        'Step 5: Add the tag to your website via GTM or directly',
+        'Step 6: Create a "All Visitors" remarketing audience',
+        'Step 7: Audiences build passively even without active campaigns',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: If using GTM, add Google Ads Remarketing tag in GTM',
+          'Step 2: Or use "Insert Headers and Footers" plugin',
+          'Step 3: Add the gtag.js code with your AW- ID',
+          'Step 4: Verify with Google Ads Tag Assistant',
+        ],
+        shopify: [
+          'Step 1: Go to Settings > Apps and sales channels',
+          'Step 2: Install "Google & YouTube" official app',
+          'Step 3: Connect your Google Ads account',
+          'Step 4: Enable audience building and tracking',
+        ],
+        custom: [
+          'Step 1: Add gtag.js with your AW- conversion ID',
+          'Step 2: Configure for remarketing (not just conversions)',
+          'Step 3: Deploy across all pages',
+          'Step 4: Verify in Google Ads > Audience Manager',
+        ],
+      },
+      snippets: [
+        `<!-- Google Ads Tag (add to <head>) -->\n<script async src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXX"></script>\n<script>\n  window.dataLayer = window.dataLayer || [];\n  function gtag(){dataLayer.push(arguments);}\n  gtag('js', new Date());\n  gtag('config', 'AW-XXXXXXXXX');\n</script>`,
+      ],
+      verifySteps: [
+        'Step 1: Install Google Tag Assistant Chrome extension',
+        'Step 2: Visit your site and check for Google Ads tag',
+        'Step 3: In Google Ads, check Audience Manager for list growth',
+        'Step 4: Verify tag status shows "Active" in Google Ads',
+      ],
+      mistakesToAvoid: [
+        'Do not enable campaigns without proper conversion tracking',
+        'Do not forget to set up remarketing audiences early',
+        'Do not run ads without testing conversion events first',
+      ],
+      manualCheckRequired: true,
+    });
+  }
+  
+  // Check Google Ads Conversion Tracking (if Ads tag exists but no conversion)
+  if (homepage.hasGoogleAdsTag && !homepage.hasGoogleAdsConversion) {
+    issues.push({
+      id: 'missing-conversion-tracking',
+      title: 'Google Ads conversion tracking not detected',
+      severity: 'high',
+      category: 'marketing',
+      whyItMatters: 'You have Google Ads installed but no conversion tracking. Without conversion tracking, Google cannot optimize your campaigns for actual results (sales, leads, signups), meaning you will waste ad spend on low-quality traffic.',
+      evidence: ['Google Ads tag found but no conversion events detected'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: In Google Ads, go to Goals > Conversions > Summary',
+        'Step 2: Click "+ New conversion action" > Website',
+        'Step 3: Enter your website URL and scan for events',
+        'Step 4: Define your primary conversions (purchase, lead form, signup)',
+        'Step 5: Get the conversion tracking code',
+        'Step 6: Install via GTM (recommended) or directly on thank-you pages',
+        'Step 7: Test conversions using GTM Preview or Tag Assistant',
+        'Step 8: Wait for conversions to register before optimizing campaigns',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Use GTM to add conversion tags on form submissions/purchases',
+          'Step 2: WooCommerce users: Use "Google Ads & Marketing" plugin',
+          'Step 3: Set conversion to fire on thank-you/confirmation pages',
+          'Step 4: Or use gtag event on form success callbacks',
+        ],
+        shopify: [
+          'Step 1: Install "Google & YouTube" official app if not done',
+          'Step 2: Go to Settings in the app > Conversion tracking',
+          'Step 3: Enable purchase and other conversion events',
+          'Step 4: Conversion tracking is automatic for checkouts',
+        ],
+        custom: [
+          'Step 1: Add gtag conversion code to your confirmation pages',
+          'Step 2: Or trigger gtag("event", "conversion") via JavaScript',
+          'Step 3: Include conversion value and order ID if applicable',
+          'Step 4: Test with Tag Assistant before going live',
+        ],
+      },
+      snippets: [
+        `<!-- Conversion Event (add to thank-you page or trigger on success) -->\n<script>\n  gtag('event', 'conversion', {\n    'send_to': 'AW-XXXXXXXXX/YYYYYYYYYYYY',\n    'value': 99.99,\n    'currency': 'USD',\n    'transaction_id': 'ORDER_12345'\n  });\n</script>`,
+      ],
+      verifySteps: [
+        'Step 1: Complete a test conversion on your website',
+        'Step 2: Check Google Ads > Goals > Conversions for the event',
+        'Step 3: Use Tag Assistant to verify conversion tag fires correctly',
+        'Step 4: Allow up to 24 hours for conversions to appear in reports',
+      ],
+      mistakesToAvoid: [
+        'Do not track page views as conversions - only track meaningful actions',
+        'Do not forget to pass conversion value for e-commerce',
+        'Do not launch campaigns before verifying conversions work',
+      ],
+      manualCheckRequired: false,
+    });
+  }
+  
+  // Check Merchant Center / Product Schema for E-commerce
+  if (homepage.hasProductSchema && !homepage.hasMerchantCenterLink) {
+    issues.push({
+      id: 'missing-merchant-center',
+      title: 'Google Merchant Center free listings opportunity',
+      severity: 'medium',
+      category: 'marketing',
+      whyItMatters: 'Your site has product data but may not be listed in Google Shopping free listings. Merchant Center allows your products to appear for free in Google Shopping, Images, and Search results.',
+      evidence: ['Product schema detected but full Merchant Center integration may be missing'],
+      affectedUrls: [homepage.url],
+      fixSteps: [
+        'Step 1: Go to merchants.google.com and sign up (free)',
+        'Step 2: Verify and claim your website URL',
+        'Step 3: Create a product feed (manually, via Shopify, or with plugins)',
+        'Step 4: Submit your feed to Merchant Center',
+        'Step 5: Opt into "Free product listings" in Growth > Manage programs',
+        'Step 6: Ensure products have: title, price, availability, images, GTIN/MPN',
+        'Step 7: Fix any disapprovals in the Diagnostics section',
+        'Step 8: Connect Google Ads for paid Shopping campaigns later',
+      ],
+      platformFixSteps: {
+        wordpress: [
+          'Step 1: Install "Google Listings & Ads" WooCommerce extension',
+          'Step 2: Connect your Merchant Center and Google Ads accounts',
+          'Step 3: Sync your WooCommerce products automatically',
+          'Step 4: Review product status in the plugin dashboard',
+          'Step 5: Fix any missing attributes like GTIN or brand',
+        ],
+        shopify: [
+          'Step 1: Install "Google & YouTube" official app',
+          'Step 2: Connect your Merchant Center account',
+          'Step 3: Sync products from Shopify to Merchant Center',
+          'Step 4: Enable "Free listings" in the app settings',
+          'Step 5: Ensure all products have required attributes',
+        ],
+        custom: [
+          'Step 1: Create a product feed in XML, TXT, or Google Sheets format',
+          'Step 2: Include required attributes: id, title, description, link, image_link, price, availability',
+          'Step 3: Upload feed to Merchant Center > Products > Feeds',
+          'Step 4: Set up scheduled fetches if feed URL is accessible',
+        ],
+      },
+      snippets: [
+        `<!-- Product Schema Example (for each product) -->\n<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Product",\n  "name": "Example Product",\n  "image": "https://example.com/product.jpg",\n  "description": "Product description here",\n  "brand": {"@type": "Brand", "name": "Brand Name"},\n  "gtin13": "0012345678905",\n  "offers": {\n    "@type": "Offer",\n    "price": "49.99",\n    "priceCurrency": "USD",\n    "availability": "https://schema.org/InStock",\n    "url": "https://example.com/product"\n  }\n}\n</script>`,
+      ],
+      verifySteps: [
+        'Step 1: Check Merchant Center Diagnostics for product status',
+        'Step 2: Search Google Shopping for your products by name',
+        'Step 3: Use Google Rich Results Test on product pages',
+        'Step 4: Monitor impressions in Merchant Center Performance tab',
+      ],
+      mistakesToAvoid: [
+        'Do not submit products without required attributes (price, availability, image)',
+        'Do not use stock photos that violate image policies',
+        'Do not list products that violate Google Shopping policies',
+      ],
+      manualCheckRequired: true,
     });
   }
   

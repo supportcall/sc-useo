@@ -10,7 +10,8 @@ export type Category =
   | 'images' 
   | 'internal-linking' 
   | 'content' 
-  | 'security';
+  | 'security'
+  | 'marketing';
 
 export interface PlatformFixSteps {
   wordpress?: string[];

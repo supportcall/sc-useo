@@ -26,6 +26,7 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
     { id: 'internal-linking', label: 'Internal Linking' },
     { id: 'content', label: 'Content' },
     { id: 'security', label: 'Security' },
+    { id: 'marketing', label: 'Marketing & Analytics' },
   ];
 
   const sortedIssues = [...result.issues].sort((a, b) => {
