@@ -13,12 +13,14 @@ export function Header() {
         </Link>
         
         <nav className="flex items-center gap-4">
-          <Link 
-            to="/privacy" 
+          <a 
+            href="https://wiki.supportcall.com.au/doku.php?id=policy_-_privacy_policy" 
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
             Privacy
-          </Link>
+          </a>
           <Link 
             to="/production-checklist" 
             className="text-sm text-muted-foreground hover:text-foreground"
