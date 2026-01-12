@@ -11,7 +11,55 @@ export type Category =
   | 'internal-linking' 
   | 'content' 
   | 'security'
-  | 'marketing';
+  | 'marketing'
+  | 'keywords';
+
+// Geographic scope for keyword targeting
+export type GeographicScope = 'international' | 'national' | 'state' | 'regional';
+
+export interface GeographicScopeOption {
+  id: GeographicScope;
+  label: string;
+  description: string;
+}
+
+export const geographicScopes: GeographicScopeOption[] = [
+  { id: 'international', label: 'International', description: 'Global audience across multiple countries' },
+  { id: 'national', label: 'National', description: 'Single country-wide targeting' },
+  { id: 'state', label: 'State/Province', description: 'State or province level targeting' },
+  { id: 'regional', label: 'Regional/Local', description: 'City or local area targeting' },
+];
+
+// Keyword analysis types
+export interface KeywordData {
+  keyword: string;
+  frequency: number;
+  density: number;
+  inTitle: boolean;
+  inH1: boolean;
+  inMetaDescription: boolean;
+  prominence: number; // 0-100 score based on position and usage
+}
+
+export interface CompetitorKeywordAnalysis {
+  competitorUrl: string;
+  keywords: KeywordData[];
+  topKeywords: string[];
+  uniqueKeywords: string[]; // Keywords competitor has that you don't
+}
+
+export interface KeywordAnalysis {
+  siteKeywords: KeywordData[];
+  topKeywords: string[];
+  competitorAnalysis: CompetitorKeywordAnalysis[];
+  suggestedKeywords: {
+    keyword: string;
+    reason: string;
+    competitorUsing: string[];
+    estimatedDifficulty: 'easy' | 'medium' | 'hard';
+  }[];
+  keywordGaps: string[]; // Keywords competitors rank for that you don't target
+}
 
 export interface PlatformFixSteps {
   wordpress?: string[];
@@ -149,6 +197,9 @@ export interface AnalysisConfig {
   checkDesktop: boolean;
   usePSI: boolean;
   selectedCategories: CheckCategory[];
+  geographicScope: GeographicScope;
+  targetLocation?: string; // For state/regional: specific location name
+  enableKeywordAnalysis: boolean;
 }
 
 export interface AnalysisStage {
@@ -177,6 +228,7 @@ export interface AnalysisResult {
   pages: PageAnalysis[];
   crawlResults: CrawlResult[];
   issues: Issue[];
+  keywordAnalysis?: KeywordAnalysis;
   summary: {
     pagesAnalyzed: number;
     totalIssues: number;
@@ -204,6 +256,8 @@ export const defaultConfig: AnalysisConfig = {
   checkDesktop: true,
   usePSI: false,
   selectedCategories: checkCategories.map(c => c.id), // All selected by default
+  geographicScope: 'national',
+  enableKeywordAnalysis: true,
 };
 
 export const analysisStages: AnalysisStage[] = [
