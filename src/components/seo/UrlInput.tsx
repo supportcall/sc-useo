@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Globe, Plus, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Globe, Plus, X, ChevronDown, ChevronUp, Check, MapPin, Key, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,8 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnalysisConfig, defaultConfig, checkCategories, CheckCategory } from '@/types/seo';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AnalysisConfig, defaultConfig, checkCategories, CheckCategory, geographicScopes, GeographicScope } from '@/types/seo';
 
 interface UrlInputProps {
   onSubmit: (config: AnalysisConfig) => void;
@@ -17,10 +18,14 @@ interface UrlInputProps {
   onReset: () => void;
 }
 
+// Default reference competitor for keyword analysis
+const UBERSUGGEST_URL = 'https://neilpatel.com/';
+
 export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputProps) {
   const [config, setConfig] = useState<AnalysisConfig>(defaultConfig);
   const [competitorInput, setCompetitorInput] = useState('');
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [keywordSettingsOpen, setKeywordSettingsOpen] = useState(true);
   const [urlError, setUrlError] = useState('');
 
   const validateUrl = (url: string): boolean => {
@@ -89,8 +94,11 @@ export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputPro
     setCompetitorInput('');
     setUrlError('');
     setAdvancedOpen(false);
+    setKeywordSettingsOpen(true);
     onReset();
   };
+
+  const showLocationInput = config.geographicScope === 'state' || config.geographicScope === 'regional';
 
   return (
     <Card>
@@ -128,6 +136,9 @@ export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputPro
           {/* Competitor URLs */}
           <div className="space-y-2">
             <Label>Competitor URLs (optional, max 3)</Label>
+            <p className="text-xs text-muted-foreground">
+              Add competitor sites to analyze their keywords. Ubersuggest (neilpatel.com) is used as a reference.
+            </p>
             <div className="flex gap-2">
               <Input
                 type="text"
@@ -173,6 +184,106 @@ export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputPro
               </div>
             )}
           </div>
+
+          {/* Keyword Analysis Settings */}
+          <Collapsible open={keywordSettingsOpen} onOpenChange={setKeywordSettingsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" type="button" className="w-full justify-between">
+                <span className="flex items-center gap-2">
+                  <Key className="h-4 w-4" />
+                  Keyword Analysis Settings
+                  <Sparkles className="h-3 w-3 text-primary" />
+                </span>
+                {keywordSettingsOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              {/* Enable Keyword Analysis */}
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    Enable Keyword Analysis
+                    <Sparkles className="h-3 w-3 text-primary" />
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Extract keywords from your site and competitors, get suggestions
+                  </p>
+                </div>
+                <Switch
+                  checked={config.enableKeywordAnalysis}
+                  onCheckedChange={(checked) => setConfig(prev => ({ ...prev, enableKeywordAnalysis: checked }))}
+                  disabled={isRunning}
+                />
+              </div>
+
+              {config.enableKeywordAnalysis && (
+                <>
+                  {/* Geographic Scope */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <Label>Geographic Targeting Scope</Label>
+                    </div>
+                    <Select
+                      value={config.geographicScope}
+                      onValueChange={(value: GeographicScope) => setConfig(prev => ({ ...prev, geographicScope: value }))}
+                      disabled={isRunning}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select geographic scope" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {geographicScopes.map((scope) => (
+                          <SelectItem key={scope.id} value={scope.id}>
+                            <div className="flex flex-col">
+                              <span>{scope.label}</span>
+                              <span className="text-xs text-muted-foreground">{scope.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Target Location (for state/regional) */}
+                  {showLocationInput && (
+                    <div className="space-y-2">
+                      <Label htmlFor="targetLocation">
+                        Target Location {config.geographicScope === 'state' ? '(State/Province)' : '(City/Region)'}
+                      </Label>
+                      <Input
+                        id="targetLocation"
+                        type="text"
+                        placeholder={config.geographicScope === 'state' ? 'e.g., California, Ontario' : 'e.g., Los Angeles, Toronto'}
+                        value={config.targetLocation || ''}
+                        onChange={(e) => setConfig(prev => ({ ...prev, targetLocation: e.target.value || undefined }))}
+                        disabled={isRunning}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Helps identify location-specific keywords and competitors
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Reference Info */}
+                  <div className="rounded-lg bg-muted/50 p-3 text-sm">
+                    <p className="font-medium text-muted-foreground">Keyword Analysis Includes:</p>
+                    <ul className="mt-2 space-y-1 text-muted-foreground">
+                      <li>• Extract top keywords from your site pages</li>
+                      <li>• Analyze competitor keyword strategies</li>
+                      <li>• Identify keyword gaps and opportunities</li>
+                      <li>• Suggest high-value keywords based on {config.geographicScope} targeting</li>
+                      <li>• Compare against Ubersuggest methodology</li>
+                    </ul>
+                  </div>
+                </>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* SEO Check Categories */}
           <div className="space-y-4">

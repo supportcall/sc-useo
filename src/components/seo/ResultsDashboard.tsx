@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Download, FileJson, FileSpreadsheet, FileText } from 'lucide-react';
+import { Download, FileJson, FileSpreadsheet, FileText, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AnalysisResult, Category, Issue } from '@/types/seo';
 import { ResultsSummary } from './ResultsSummary';
 import { IssueCard } from './IssueCard';
+import { KeywordAnalysisTab } from './KeywordAnalysisTab';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDFReport } from '@/lib/pdf-generator';
 
@@ -28,6 +29,7 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
     { id: 'content', label: 'Content' },
     { id: 'security', label: 'Security' },
     { id: 'marketing', label: 'Marketing & Analytics' },
+    { id: 'keywords', label: 'Keywords' },
   ];
 
   const sortedIssues = [...result.issues].sort((a, b) => {
@@ -150,6 +152,15 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
             >
               Fix Plan ({result.issues.length})
             </TabsTrigger>
+            {result.keywordAnalysis && (
+              <TabsTrigger 
+                value="keyword-analysis"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
+              >
+                <Key className="mr-1 h-3 w-3" />
+                Keyword Analysis
+              </TabsTrigger>
+            )}
             {categoryTabs.map((tab) => {
               const count = getIssuesByCategory(tab.id as Category).length;
               if (count === 0) return null;
@@ -174,6 +185,16 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
             <IssueCard key={issue.id} issue={issue} index={index} />
           ))}
         </TabsContent>
+
+        {result.keywordAnalysis && (
+          <TabsContent value="keyword-analysis" className="mt-4">
+            <KeywordAnalysisTab 
+              keywordAnalysis={result.keywordAnalysis}
+              geographicScope={result.config.geographicScope}
+              targetLocation={result.config.targetLocation}
+            />
+          </TabsContent>
+        )}
 
         {categoryTabs.map((tab) => (
           <TabsContent key={tab.id} value={tab.id} className="mt-4 space-y-3">

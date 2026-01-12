@@ -10,9 +10,44 @@ const corsHeaders = {
 
 interface AnalysisConfig {
   url: string;
+  competitors: string[];
   crawlLimit: number;
   includeSubdomains: boolean;
   usePSI: boolean;
+  geographicScope: 'international' | 'national' | 'state' | 'regional';
+  targetLocation?: string;
+  enableKeywordAnalysis: boolean;
+}
+
+// Keyword analysis types
+interface KeywordData {
+  keyword: string;
+  frequency: number;
+  density: number;
+  inTitle: boolean;
+  inH1: boolean;
+  inMetaDescription: boolean;
+  prominence: number;
+}
+
+interface CompetitorKeywordAnalysis {
+  competitorUrl: string;
+  keywords: KeywordData[];
+  topKeywords: string[];
+  uniqueKeywords: string[];
+}
+
+interface KeywordAnalysis {
+  siteKeywords: KeywordData[];
+  topKeywords: string[];
+  competitorAnalysis: CompetitorKeywordAnalysis[];
+  suggestedKeywords: {
+    keyword: string;
+    reason: string;
+    competitorUsing: string[];
+    estimatedDifficulty: 'easy' | 'medium' | 'hard';
+  }[];
+  keywordGaps: string[];
 }
 
 interface PageAnalysis {
@@ -487,6 +522,320 @@ function getBlacklistCheckUrls(domain: string): { name: string; url: string }[] 
     name: service.name,
     url: service.checkUrl + encodeURIComponent(domain),
   }));
+}
+
+// ========== KEYWORD ANALYSIS FUNCTIONS ==========
+
+// Common English stop words to filter out
+const STOP_WORDS = new Set([
+  'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+  'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after',
+  'above', 'below', 'between', 'under', 'again', 'further', 'then', 'once',
+  'here', 'there', 'when', 'where', 'why', 'how', 'all', 'each', 'few', 'more',
+  'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same',
+  'so', 'than', 'too', 'very', 'can', 'will', 'just', 'should', 'now', 'also',
+  'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+  'do', 'does', 'did', 'would', 'could', 'might', 'must', 'shall', 'get',
+  'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
+  'what', 'which', 'who', 'whom', 'its', 'your', 'their', 'our', 'my', 'his', 'her',
+  'as', 'if', 'while', 'because', 'until', 'unless', 'although', 'though',
+  'since', 'however', 'therefore', 'thus', 'hence', 'yet', 'still', 'even',
+  'click', 'read', 'learn', 'view', 'see', 'go', 'back', 'next', 'previous',
+  'home', 'menu', 'contact', 'us', 'me', 'submit', 'send', 'email', 'phone',
+]);
+
+// Extract keywords from text content
+function extractKeywordsFromText(text: string): Map<string, number> {
+  const words = text.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 2 && !STOP_WORDS.has(word));
+  
+  const frequency = new Map<string, number>();
+  words.forEach(word => {
+    frequency.set(word, (frequency.get(word) || 0) + 1);
+  });
+  
+  return frequency;
+}
+
+// Extract n-grams (2-3 word phrases)
+function extractNGrams(text: string, n: number): Map<string, number> {
+  const words = text.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 1);
+  
+  const ngrams = new Map<string, number>();
+  
+  for (let i = 0; i <= words.length - n; i++) {
+    const ngram = words.slice(i, i + n).join(' ');
+    // Filter out ngrams that are mostly stop words
+    const ngramWords = ngram.split(' ');
+    const nonStopWords = ngramWords.filter(w => !STOP_WORDS.has(w));
+    if (nonStopWords.length >= Math.ceil(n / 2)) {
+      ngrams.set(ngram, (ngrams.get(ngram) || 0) + 1);
+    }
+  }
+  
+  return ngrams;
+}
+
+// Analyze keywords from a page
+function analyzePageKeywords(page: PageAnalysis, bodyText: string): KeywordData[] {
+  const title = (page.title || '').toLowerCase();
+  const h1 = (page.h1Text || '').toLowerCase();
+  const metaDesc = (page.metaDescription || '').toLowerCase();
+  
+  // Extract single words
+  const singleWords = extractKeywordsFromText(bodyText);
+  
+  // Extract bigrams and trigrams
+  const bigrams = extractNGrams(bodyText, 2);
+  const trigrams = extractNGrams(bodyText, 3);
+  
+  // Combine all keywords
+  const allKeywords = new Map<string, number>();
+  singleWords.forEach((count, word) => allKeywords.set(word, count));
+  bigrams.forEach((count, phrase) => {
+    if (count >= 2) allKeywords.set(phrase, count);
+  });
+  trigrams.forEach((count, phrase) => {
+    if (count >= 2) allKeywords.set(phrase, count);
+  });
+  
+  const totalWords = bodyText.split(/\s+/).length || 1;
+  
+  // Convert to KeywordData array
+  const keywords: KeywordData[] = [];
+  allKeywords.forEach((frequency, keyword) => {
+    if (frequency >= 2) { // Minimum frequency threshold
+      const density = (frequency / totalWords) * 100;
+      const inTitle = title.includes(keyword);
+      const inH1 = h1.includes(keyword);
+      const inMetaDescription = metaDesc.includes(keyword);
+      
+      // Calculate prominence score (0-100)
+      let prominence = 0;
+      if (inTitle) prominence += 30;
+      if (inH1) prominence += 25;
+      if (inMetaDescription) prominence += 20;
+      prominence += Math.min(25, density * 10); // Density contribution
+      
+      keywords.push({
+        keyword,
+        frequency,
+        density: Math.round(density * 100) / 100,
+        inTitle,
+        inH1,
+        inMetaDescription,
+        prominence: Math.min(100, Math.round(prominence)),
+      });
+    }
+  });
+  
+  // Sort by prominence
+  return keywords.sort((a, b) => b.prominence - a.prominence);
+}
+
+// Extract body text from HTML
+function extractBodyText(html: string): string {
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  if (!bodyMatch) return '';
+  
+  return bodyMatch[1]
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+    .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+    .replace(/<header[\s\S]*?<\/header>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Fetch and analyze competitor keywords
+async function analyzeCompetitorKeywords(competitorUrl: string): Promise<CompetitorKeywordAnalysis | null> {
+  try {
+    console.log('[seo-analyze] Analyzing competitor keywords:', competitorUrl);
+    
+    const response = await fetch(competitorUrl, {
+      headers: { 'User-Agent': 'SupportCALL-SEO-Analyzer/1.0' },
+      redirect: 'follow',
+    });
+    
+    if (!response.ok) {
+      console.warn('[seo-analyze] Failed to fetch competitor:', competitorUrl, response.status);
+      return null;
+    }
+    
+    const html = await response.text();
+    const page = parseHTML(html, competitorUrl);
+    const bodyText = extractBodyText(html);
+    const keywords = analyzePageKeywords(page, bodyText);
+    
+    // Get top 20 keywords
+    const topKeywords = keywords.slice(0, 20).map(k => k.keyword);
+    
+    return {
+      competitorUrl,
+      keywords: keywords.slice(0, 50),
+      topKeywords,
+      uniqueKeywords: [], // Will be filled in after comparing with main site
+    };
+  } catch (error) {
+    console.error('[seo-analyze] Error analyzing competitor:', competitorUrl, error);
+    return null;
+  }
+}
+
+// Generate keyword suggestions based on gaps
+function generateKeywordSuggestions(
+  siteKeywords: KeywordData[],
+  competitorAnalyses: CompetitorKeywordAnalysis[],
+  config: AnalysisConfig
+): { keyword: string; reason: string; competitorUsing: string[]; estimatedDifficulty: 'easy' | 'medium' | 'hard' }[] {
+  const suggestions: { keyword: string; reason: string; competitorUsing: string[]; estimatedDifficulty: 'easy' | 'medium' | 'hard' }[] = [];
+  const siteKeywordSet = new Set(siteKeywords.map(k => k.keyword));
+  
+  // Find keywords used by competitors but not by the site
+  const competitorKeywordMap = new Map<string, string[]>();
+  
+  competitorAnalyses.forEach(analysis => {
+    analysis.topKeywords.forEach(keyword => {
+      if (!siteKeywordSet.has(keyword)) {
+        const existing = competitorKeywordMap.get(keyword) || [];
+        existing.push(new URL(analysis.competitorUrl).hostname);
+        competitorKeywordMap.set(keyword, existing);
+      }
+    });
+  });
+  
+  // Sort by number of competitors using the keyword
+  const sortedGaps = Array.from(competitorKeywordMap.entries())
+    .sort((a, b) => b[1].length - a[1].length);
+  
+  // Generate suggestions
+  sortedGaps.slice(0, 15).forEach(([keyword, competitors]) => {
+    const difficulty = competitors.length >= 3 ? 'hard' : competitors.length >= 2 ? 'medium' : 'easy';
+    
+    let reason = '';
+    if (competitors.length >= 2) {
+      reason = `Used by ${competitors.length} competitors - proven ${config.geographicScope} keyword`;
+    } else {
+      reason = `Competitor advantage - ${competitors[0]} ranks for this`;
+    }
+    
+    // Add geographic context to reason
+    if (config.geographicScope === 'regional' && config.targetLocation) {
+      reason += `. Consider localizing for ${config.targetLocation}`;
+    } else if (config.geographicScope === 'state' && config.targetLocation) {
+      reason += `. Target ${config.targetLocation} specifically`;
+    }
+    
+    suggestions.push({
+      keyword,
+      reason,
+      competitorUsing: competitors,
+      estimatedDifficulty: difficulty,
+    });
+  });
+  
+  return suggestions;
+}
+
+// Perform full keyword analysis
+async function performKeywordAnalysis(
+  homepage: PageAnalysis,
+  homepageHtml: string,
+  pages: PageAnalysis[],
+  pagesHtml: Map<string, string>,
+  competitors: string[],
+  config: AnalysisConfig
+): Promise<KeywordAnalysis> {
+  console.log('[seo-analyze] Starting keyword analysis...');
+  
+  // Analyze main site keywords
+  let allSiteKeywords = new Map<string, KeywordData>();
+  
+  // Analyze homepage
+  const homepageText = extractBodyText(homepageHtml);
+  const homepageKeywords = analyzePageKeywords(homepage, homepageText);
+  homepageKeywords.forEach(k => {
+    const existing = allSiteKeywords.get(k.keyword);
+    if (!existing || existing.prominence < k.prominence) {
+      allSiteKeywords.set(k.keyword, k);
+    }
+  });
+  
+  // Analyze crawled pages
+  pages.forEach(page => {
+    const html = pagesHtml.get(page.url) || '';
+    if (html) {
+      const text = extractBodyText(html);
+      const keywords = analyzePageKeywords(page, text);
+      keywords.forEach(k => {
+        const existing = allSiteKeywords.get(k.keyword);
+        if (existing) {
+          existing.frequency += k.frequency;
+          existing.prominence = Math.max(existing.prominence, k.prominence);
+        } else {
+          allSiteKeywords.set(k.keyword, k);
+        }
+      });
+    }
+  });
+  
+  // Convert to array and sort
+  const siteKeywords = Array.from(allSiteKeywords.values())
+    .sort((a, b) => b.prominence - a.prominence)
+    .slice(0, 100);
+  
+  const topKeywords = siteKeywords.slice(0, 20).map(k => k.keyword);
+  
+  // Analyze competitors (including user-specified ones)
+  const allCompetitors = [...competitors];
+  
+  // Always include Ubersuggest/Neil Patel as a reference for methodology comparison
+  const ubersuggestUrl = 'https://neilpatel.com/';
+  if (!allCompetitors.some(c => c.includes('neilpatel.com'))) {
+    allCompetitors.push(ubersuggestUrl);
+  }
+  
+  const competitorAnalyses: CompetitorKeywordAnalysis[] = [];
+  
+  for (const competitorUrl of allCompetitors.slice(0, 4)) { // Limit to 4 competitors
+    const analysis = await analyzeCompetitorKeywords(competitorUrl);
+    if (analysis) {
+      // Find unique keywords (competitor has but site doesn't)
+      const siteKeywordSet = new Set(siteKeywords.map(k => k.keyword));
+      analysis.uniqueKeywords = analysis.topKeywords.filter(k => !siteKeywordSet.has(k));
+      competitorAnalyses.push(analysis);
+    }
+  }
+  
+  // Generate suggestions
+  const suggestedKeywords = generateKeywordSuggestions(siteKeywords, competitorAnalyses, config);
+  
+  // Identify keyword gaps
+  const keywordGaps: string[] = [];
+  competitorAnalyses.forEach(analysis => {
+    analysis.uniqueKeywords.slice(0, 5).forEach(kw => {
+      if (!keywordGaps.includes(kw)) {
+        keywordGaps.push(kw);
+      }
+    });
+  });
+  
+  console.log('[seo-analyze] Keyword analysis complete. Found', siteKeywords.length, 'site keywords,', suggestedKeywords.length, 'suggestions');
+  
+  return {
+    siteKeywords,
+    topKeywords,
+    competitorAnalysis: competitorAnalyses,
+    suggestedKeywords,
+    keywordGaps: keywordGaps.slice(0, 20),
+  };
 }
 
 // Generate issues based on analysis
@@ -1571,8 +1920,9 @@ serve(async (req) => {
       }
     }
     
-    // Crawl internal pages
+    // Crawl internal pages and store HTML for keyword analysis
     const pages: PageAnalysis[] = [];
+    const pagesHtml = new Map<string, string>();
     const internalUrls = extractInternalUrls(homepageHtml, baseUrl);
     const urlsToCrawl = internalUrls.slice(0, Math.min(config.crawlLimit - 1, 10)); // Limit crawl
     
@@ -1588,6 +1938,7 @@ serve(async (req) => {
           const pageAnalysis = parseHTML(html, pageUrl);
           pageAnalysis.status = response.status;
           pages.push(pageAnalysis);
+          pagesHtml.set(pageUrl, html); // Store for keyword analysis
         }
       } catch (error) {
         console.warn('[seo-analyze] Failed to crawl:', pageUrl, error);
@@ -1600,9 +1951,82 @@ serve(async (req) => {
     const blacklistResult = await checkBlacklists(parsedUrl.hostname);
     console.log('[seo-analyze] Blacklist check complete for:', parsedUrl.hostname);
     
+    // Perform keyword analysis if enabled
+    let keywordAnalysis: KeywordAnalysis | undefined;
+    if (config.enableKeywordAnalysis) {
+      keywordAnalysis = await performKeywordAnalysis(
+        homepage,
+        homepageHtml,
+        pages,
+        pagesHtml,
+        config.competitors || [],
+        config
+      );
+    }
+    
     // Generate issues
     const issues = generateIssues(homepage, robots, pages, config, blacklistResult);
     console.log('[seo-analyze] Generated', issues.length, 'issues');
+    
+    // Add keyword-related issues if analysis was performed
+    if (keywordAnalysis) {
+      // Check if site has low keyword density
+      const avgProminence = keywordAnalysis.siteKeywords.slice(0, 10).reduce((sum, k) => sum + k.prominence, 0) / 10;
+      if (avgProminence < 30) {
+        issues.push({
+          id: 'low-keyword-optimization',
+          title: 'Low keyword optimization detected',
+          severity: 'medium',
+          category: 'keywords',
+          whyItMatters: 'Your pages have weak keyword presence in key areas (titles, H1s, meta descriptions). This reduces your visibility for relevant searches and limits organic traffic potential.',
+          evidence: [
+            `Average keyword prominence score: ${Math.round(avgProminence)}/100`,
+            `Top keywords often missing from titles and H1s`,
+          ],
+          fixSteps: [
+            'Identify your top 5-10 target keywords',
+            'Include primary keyword in page titles',
+            'Use primary keyword in H1 headings',
+            'Add keywords naturally to meta descriptions',
+            'Ensure keyword density of 1-2% in body content',
+          ],
+          verifySteps: [
+            'Check titles contain target keywords',
+            'Verify H1 tags include keywords',
+            'Review keyword density in body content',
+          ],
+          manualCheckRequired: false,
+        });
+      }
+      
+      // Check for keyword gaps
+      if (keywordAnalysis.keywordGaps.length >= 5) {
+        issues.push({
+          id: 'keyword-gaps',
+          title: `${keywordAnalysis.keywordGaps.length} keyword opportunities identified`,
+          severity: 'low',
+          category: 'keywords',
+          whyItMatters: 'Competitors are ranking for keywords you\'re not targeting. These represent potential traffic opportunities you\'re missing.',
+          evidence: [
+            `Top gap keywords: ${keywordAnalysis.keywordGaps.slice(0, 5).join(', ')}`,
+            `${keywordAnalysis.competitorAnalysis.length} competitor(s) analyzed`,
+          ],
+          affectedUrls: keywordAnalysis.competitorAnalysis.map(c => c.competitorUrl),
+          fixSteps: [
+            'Review the suggested keywords in the Keyword Analysis tab',
+            'Create content targeting high-opportunity keywords',
+            'Optimize existing pages for relevant gap keywords',
+            'Build topic clusters around keyword themes',
+          ],
+          verifySteps: [
+            'Track keyword rankings over time',
+            'Monitor organic traffic changes',
+            'Check Google Search Console for new impressions',
+          ],
+          manualCheckRequired: true,
+        });
+      }
+    }
     
     // Calculate score
     const { score, breakdown } = calculateScore(issues);
@@ -1629,6 +2053,7 @@ serve(async (req) => {
       pages,
       crawlResults: [],
       issues,
+      keywordAnalysis,
       summary,
     };
     
