@@ -107,8 +107,8 @@ RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 # ----------------
 # CUSTOM ERROR PAGES
 # ----------------
-ErrorDocument 404 /index.html
-ErrorDocument 500 /index.html
+ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
 
 # ----------------
 # BLOCK SENSITIVE FILES

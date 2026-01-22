@@ -3,9 +3,13 @@
 
 User-agent: Googlebot
 Allow: /
+Disallow: /healthz
+Disallow: /readyz
 
 User-agent: Bingbot
 Allow: /
+Disallow: /healthz
+Disallow: /readyz
 
 User-agent: Twitterbot
 Allow: /
@@ -15,10 +19,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /healthz
+Disallow: /readyz
 
 # Sitemap location
 Sitemap: https://sc-seo.io/sitemap.xml
-
-# Disallow health check endpoints
-Disallow: /healthz
-Disallow: /readyz
