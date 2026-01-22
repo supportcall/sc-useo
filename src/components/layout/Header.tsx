@@ -20,12 +20,12 @@ export function Header() {
         </Link>
         
         <nav className="flex items-center gap-4" role="navigation" aria-label="Main navigation">
-          <Link 
-            to="/about" 
+          <a 
+            href="/#about" 
             className="text-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-1"
           >
             About
-          </Link>
+          </a>
           <a 
             href="https://wiki.supportcall.com.au/doku.php?id=policy_-_privacy_policy" 
             target="_blank"
