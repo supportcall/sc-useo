@@ -143,9 +143,17 @@ const ProductionChecklist = () => {
     <Layout>
       <div className="container-narrow py-8 lg:py-12">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Production Checklist</h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-4">
           Security hardening checklist for cPanel VPS deployment
         </p>
+        <div className="bg-muted/50 border rounded-lg p-4 mb-8">
+          <p className="text-sm text-muted-foreground">
+            <strong className="text-foreground">Note:</strong> This checklist is for your convenience as you work through your deployment. 
+            You can tick off items as you complete them to track your progress. However, your selections are 
+            <strong className="text-foreground"> not saved</strong> — if you refresh the page or navigate away, 
+            the checklist will reset. Consider keeping this page open while you work, or use it as a reference guide.
+          </p>
+        </div>
 
         <div className="space-y-6">
           {sections.map((section) => (
