@@ -137,7 +137,7 @@ export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputPro
           <div className="space-y-2">
             <Label>Competitor URLs (optional, max 3)</Label>
             <p className="text-xs text-muted-foreground">
-              Add competitor sites to analyze their keywords. Ubersuggest (neilpatel.com) is used as a reference.
+              Add your biggest competitor sites to analyse their keywords against yours.
             </p>
             <div className="flex gap-2">
               <Input
@@ -274,10 +274,10 @@ export function UrlInput({ onSubmit, isRunning, onCancel, onReset }: UrlInputPro
                     <p className="font-medium text-muted-foreground">Keyword Analysis Includes:</p>
                     <ul className="mt-2 space-y-1 text-muted-foreground">
                       <li>• Extract top keywords from your site pages</li>
-                      <li>• Analyze competitor keyword strategies</li>
+                      <li>• Analyse competitor keyword strategies</li>
                       <li>• Identify keyword gaps and opportunities</li>
                       <li>• Suggest high-value keywords based on {config.geographicScope} targeting</li>
-                      <li>• Compare against Ubersuggest methodology</li>
+                      <li>• Compare your keywords against your competitors</li>
                     </ul>
                   </div>
                 </>
