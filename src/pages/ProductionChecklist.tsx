@@ -200,7 +200,7 @@ const ProductionChecklist = () => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-primary hover:underline font-medium"
               >
-                Contact SupportCALL.com.au for professional support →
+                Contact SupportCALL for professional support →
               </a>
             </CardContent>
           </Card>
