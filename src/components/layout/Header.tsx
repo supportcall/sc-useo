@@ -20,17 +20,20 @@ export function Header() {
         </Link>
         
         <nav className="flex items-center gap-4" role="navigation" aria-label="Main navigation">
+          <a 
+            href="https://wiki.supportcall.com.au/doku.php?id=policy_-_privacy_policy" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-1"
+          >
+            Privacy
+            <span className="sr-only"> (opens in new tab)</span>
+          </a>
           <Link 
             to="/production-checklist" 
             className="text-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-1"
           >
             Production Checklist
-          </Link>
-          <Link 
-            to="/about" 
-            className="text-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-1"
-          >
-            About
           </Link>
           <Button asChild variant="default" size="sm">
             <a 

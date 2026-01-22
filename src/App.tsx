@@ -9,7 +9,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Privacy from "./pages/Privacy";
 import ProductionChecklist from "./pages/ProductionChecklist";
-import About from "./pages/About";
 import Healthz from "./pages/Healthz";
 import Readyz from "./pages/Readyz";
 import NotFound from "./pages/NotFound";
@@ -28,7 +27,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/production-checklist" element={<ProductionChecklist />} />
-            <Route path="/about" element={<About />} />
             <Route path="/healthz" element={<Healthz />} />
             <Route path="/readyz" element={<Readyz />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

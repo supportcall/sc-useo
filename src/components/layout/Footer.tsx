@@ -1,121 +1,37 @@
 import { ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
     <footer 
-      className="w-full border-t border-border bg-card"
+      className="w-full border-t border-border bg-card py-4"
       role="contentinfo"
     >
-      {/* Main Footer Content */}
-      <div className="container-wide py-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand Column */}
-          <div className="space-y-2">
-            <div className="font-semibold text-foreground">SC-U SEO</div>
-            <div className="text-sm text-muted-foreground">
-              SupportCALL Ultimate SEO
-            </div>
-            <div className="text-xs text-muted-foreground">
-              A once-off SEO analysis | Privacy-first approach | No data collection | Free for all users
-            </div>
-          </div>
+      <div className="container-wide">
+        <div className="flex flex-col items-center justify-between gap-3 text-sm text-muted-foreground sm:flex-row">
+          <span className="font-medium text-foreground">
+            SupportCALL Ultimate SEO
+          </span>
           
-          {/* Quick Links Column */}
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Quick Links
-            </div>
-            <nav className="flex flex-col gap-1.5 text-sm">
-              <Link 
-                to="/" 
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                SEO Analysis
-              </Link>
-              <Link 
-                to="/production-checklist" 
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Production Checklist
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                About
-              </Link>
-            </nav>
-          </div>
+          <span className="text-center">
+            A once-off SEO analysis | Privacy-first approach | No data collection | Free for all users
+          </span>
           
-          {/* SupportCALL Column */}
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              SupportCALL
-            </div>
-            <nav className="flex flex-col gap-1.5 text-sm">
+          <div className="flex flex-col items-center gap-0.5 text-center sm:items-end sm:text-right">
+            <span>Need help with ICT issues?</span>
+            <span>Need to reduce downtime?</span>
+            <span>
+              Have a quick look at{' '}
               <a 
                 href="https://supportcall.com.au" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
               >
-                Australia
+                SupportCALL.com.au
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                <span className="sr-only"> (opens in new tab)</span>
               </a>
-              <a 
-                href="https://supportcall.co.za" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                South Africa
-              </a>
-              <a 
-                href="https://sc-uscs.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                Ultimate Secure Clean Script
-              </a>
-              <a 
-                href="https://sc-cloaked.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                SC-Cloaked
-              </a>
-            </nav>
-          </div>
-          
-          {/* Need Help Column */}
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Need Help?
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Need help with ICT issues? Need to reduce downtime?
-            </div>
-            <a 
-              href="https://supportcall.com.au" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-            >
-              Visit SupportCALL.com.au
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-              <span className="sr-only"> (opens in new tab)</span>
-            </a>
-          </div>
-        </div>
-      </div>
-      
-      {/* Bottom Bar */}
-      <div className="border-t border-border">
-        <div className="container-wide py-4">
-          <div className="text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} SupportCALL ICT Solutions. All rights reserved.
+            </span>
           </div>
         </div>
       </div>
