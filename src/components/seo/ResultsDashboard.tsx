@@ -3,12 +3,14 @@ import { Download, FileJson, FileSpreadsheet, FileText, Key } from 'lucide-react
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { AnalysisResult, Category, Issue } from '@/types/seo';
 import { ResultsSummary } from './ResultsSummary';
 import { IssueCard } from './IssueCard';
 import { KeywordAnalysisTab } from './KeywordAnalysisTab';
 import { useToast } from '@/hooks/use-toast';
-import { generatePDFReport } from '@/lib/pdf-generator';
+import { generatePDFReport, PDFExportOptions } from '@/lib/pdf-generator';
 
 interface ResultsDashboardProps {
   result: AnalysisResult;
@@ -17,6 +19,7 @@ interface ResultsDashboardProps {
 export function ResultsDashboard({ result }: ResultsDashboardProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('fix-plan');
+  const [includeResolutionSteps, setIncludeResolutionSteps] = useState(true);
 
   const categoryTabs: { id: Category | 'all'; label: string }[] = [
     { id: 'indexing', label: 'Crawl & Indexing' },
@@ -41,9 +44,13 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
     return sortedIssues.filter((issue) => issue.category === category);
   };
 
+  const exportOptions: PDFExportOptions = {
+    includeResolutionSteps,
+  };
+
   const exportPDF = () => {
     try {
-      generatePDFReport(result);
+      generatePDFReport(result, exportOptions);
       toast({
         title: 'PDF Ready',
         description: 'Use the print dialog to save as PDF.',
@@ -68,9 +75,13 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
         title: issue.title,
         severity: issue.severity,
         category: issue.category,
-        fixSteps: issue.fixSteps,
-        verifySteps: issue.verifySteps,
+        whyItMatters: issue.whyItMatters,
+        ...(includeResolutionSteps && {
+          fixSteps: issue.fixSteps,
+          verifySteps: issue.verifySteps,
+        }),
       })),
+      ...(result.keywordAnalysis && { keywordAnalysis: result.keywordAnalysis }),
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -124,7 +135,20 @@ export function ResultsDashboard({ result }: ResultsDashboardProps) {
             Export Report
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="include-resolution-steps" 
+              checked={includeResolutionSteps}
+              onCheckedChange={(checked) => setIncludeResolutionSteps(checked === true)}
+            />
+            <Label 
+              htmlFor="include-resolution-steps" 
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Include resolution steps (How to Fix & Verification)
+            </Label>
+          </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Button variant="secondary" onClick={exportPDF} className="flex-1 sm:flex-none">
               <FileText className="mr-2 h-4 w-4" />
