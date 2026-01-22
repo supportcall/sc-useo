@@ -336,9 +336,116 @@ function buildPDFHtml(result: AnalysisResult): string {
     `).join('')}
   </div>
   
+  ${result.keywordAnalysis ? `
+  <div class="section page-break">
+    <h2 class="section-title">Keyword Analysis</h2>
+    
+    ${result.keywordAnalysis.topKeywords.length > 0 ? `
+    <div class="category-section no-break">
+      <div class="category-title">Top Keywords Found (${result.keywordAnalysis.topKeywords.length})</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        ${result.keywordAnalysis.topKeywords.map(kw => `<span style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 4px; font-size: 12px;">${escapeHtml(kw)}</span>`).join('')}
+      </div>
+    </div>
+    ` : ''}
+    
+    ${result.keywordAnalysis.siteKeywords.length > 0 ? `
+    <div class="category-section no-break">
+      <div class="category-title">Keyword Details</div>
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px;">
+        <thead>
+          <tr style="background: #f3f4f6;">
+            <th style="text-align: left; padding: 8px; border: 1px solid #e5e7eb;">Keyword</th>
+            <th style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">Frequency</th>
+            <th style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">Density</th>
+            <th style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">In Title</th>
+            <th style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">In H1</th>
+            <th style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">Prominence</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${result.keywordAnalysis.siteKeywords.slice(0, 20).map(kw => `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #e5e7eb;">${escapeHtml(kw.keyword)}</td>
+              <td style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">${kw.frequency}</td>
+              <td style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">${kw.density.toFixed(2)}%</td>
+              <td style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">${kw.inTitle ? '✓' : '—'}</td>
+              <td style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">${kw.inH1 ? '✓' : '—'}</td>
+              <td style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">${kw.prominence}/100</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      ${result.keywordAnalysis.siteKeywords.length > 20 ? `<p style="font-size: 11px; color: #9ca3af;">...and ${result.keywordAnalysis.siteKeywords.length - 20} more keywords</p>` : ''}
+    </div>
+    ` : ''}
+    
+    ${result.keywordAnalysis.competitorAnalysis.length > 0 ? `
+    <div class="category-section no-break">
+      <div class="category-title">Competitor Keyword Analysis</div>
+      ${result.keywordAnalysis.competitorAnalysis.map(comp => `
+        <div style="margin-bottom: 16px; padding: 12px; background: #f9fafb; border-radius: 8px;">
+          <div style="font-weight: 600; color: #374151; margin-bottom: 8px;">${escapeHtml(comp.competitorUrl)}</div>
+          <div style="margin-bottom: 8px;">
+            <span style="font-size: 12px; color: #6b7280;">Top Keywords: </span>
+            ${comp.topKeywords.slice(0, 10).map(kw => `<span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 3px; font-size: 11px; margin-right: 4px;">${escapeHtml(kw)}</span>`).join('')}
+          </div>
+          ${comp.uniqueKeywords.length > 0 ? `
+          <div>
+            <span style="font-size: 12px; color: #6b7280;">Unique Keywords (they have, you don't): </span>
+            ${comp.uniqueKeywords.slice(0, 10).map(kw => `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 3px; font-size: 11px; margin-right: 4px;">${escapeHtml(kw)}</span>`).join('')}
+          </div>
+          ` : ''}
+        </div>
+      `).join('')}
+    </div>
+    ` : ''}
+    
+    ${result.keywordAnalysis.keywordGaps.length > 0 ? `
+    <div class="category-section no-break">
+      <div class="category-title">Keyword Gaps (${result.keywordAnalysis.keywordGaps.length})</div>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Keywords your competitors use that you should consider targeting:</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        ${result.keywordAnalysis.keywordGaps.slice(0, 30).map(kw => `<span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 4px; font-size: 12px;">${escapeHtml(kw)}</span>`).join('')}
+      </div>
+      ${result.keywordAnalysis.keywordGaps.length > 30 ? `<p style="font-size: 11px; color: #9ca3af; margin-top: 8px;">...and ${result.keywordAnalysis.keywordGaps.length - 30} more</p>` : ''}
+    </div>
+    ` : ''}
+    
+    ${result.keywordAnalysis.suggestedKeywords.length > 0 ? `
+    <div class="category-section no-break">
+      <div class="category-title">Suggested Keywords (${result.keywordAnalysis.suggestedKeywords.length})</div>
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <thead>
+          <tr style="background: #f3f4f6;">
+            <th style="text-align: left; padding: 8px; border: 1px solid #e5e7eb;">Keyword</th>
+            <th style="text-align: left; padding: 8px; border: 1px solid #e5e7eb;">Reason</th>
+            <th style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">Difficulty</th>
+            <th style="text-align: left; padding: 8px; border: 1px solid #e5e7eb;">Used By</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${result.keywordAnalysis.suggestedKeywords.slice(0, 15).map(sk => `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 500;">${escapeHtml(sk.keyword)}</td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb;">${escapeHtml(sk.reason)}</td>
+              <td style="text-align: center; padding: 8px; border: 1px solid #e5e7eb;">
+                <span style="background: ${sk.estimatedDifficulty === 'easy' ? '#d1fae5' : sk.estimatedDifficulty === 'medium' ? '#fef3c7' : '#fee2e2'}; color: ${sk.estimatedDifficulty === 'easy' ? '#065f46' : sk.estimatedDifficulty === 'medium' ? '#92400e' : '#991b1b'}; padding: 2px 8px; border-radius: 3px; font-size: 10px; text-transform: uppercase;">${sk.estimatedDifficulty}</span>
+              </td>
+              <td style="padding: 8px; border: 1px solid #e5e7eb; font-size: 11px; color: #6b7280;">${sk.competitorUsing.slice(0, 2).join(', ')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      ${result.keywordAnalysis.suggestedKeywords.length > 15 ? `<p style="font-size: 11px; color: #9ca3af; margin-top: 8px;">...and ${result.keywordAnalysis.suggestedKeywords.length - 15} more suggestions</p>` : ''}
+    </div>
+    ` : ''}
+  </div>
+  ` : ''}
+  
   ${result.pages.length > 0 ? `
   <div class="section page-break">
-    <h2 class="section-title">Pages Analyzed (${result.pages.length})</h2>
+    <h2 class="section-title">Pages Analysed (${result.pages.length})</h2>
     <ul style="padding-left: 20px; font-size: 12px; color: #4b5563;">
       ${result.pages.slice(0, 50).map(page => `<li style="margin-bottom: 4px;">${escapeHtml(page.url)}</li>`).join('')}
       ${result.pages.length > 50 ? `<li style="color: #9ca3af;">...and ${result.pages.length - 50} more pages</li>` : ''}
