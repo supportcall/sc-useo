@@ -1,16 +1,20 @@
 import { AnalysisResult, Issue } from '@/types/seo';
 
+export interface PDFExportOptions {
+  includeResolutionSteps: boolean;
+}
+
 /**
  * Self-contained PDF generator using browser print API
  * Creates a styled HTML document and triggers print-to-PDF
  */
-export function generatePDFReport(result: AnalysisResult): void {
+export function generatePDFReport(result: AnalysisResult, options: PDFExportOptions = { includeResolutionSteps: true }): void {
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     throw new Error('Unable to open print window. Please allow popups.');
   }
 
-  const htmlContent = buildPDFHtml(result);
+  const htmlContent = buildPDFHtml(result, options);
   
   printWindow.document.write(htmlContent);
   printWindow.document.close();
@@ -23,7 +27,7 @@ export function generatePDFReport(result: AnalysisResult): void {
   };
 }
 
-function buildPDFHtml(result: AnalysisResult): string {
+function buildPDFHtml(result: AnalysisResult, options: PDFExportOptions): string {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -331,7 +335,7 @@ function buildPDFHtml(result: AnalysisResult): string {
     ${Object.entries(issuesByCategory).map(([category, issues]) => `
       <div class="category-section no-break">
         <div class="category-title">${formatCategoryName(category)} (${issues.length})</div>
-        ${issues.map(issue => renderIssueCard(issue, severityColors)).join('')}
+        ${issues.map(issue => renderIssueCard(issue, severityColors, options)).join('')}
       </div>
     `).join('')}
   </div>
@@ -461,7 +465,7 @@ function buildPDFHtml(result: AnalysisResult): string {
 </html>`;
 }
 
-function renderIssueCard(issue: Issue, colors: Record<string, { bg: string; text: string; border: string }>): string {
+function renderIssueCard(issue: Issue, colors: Record<string, { bg: string; text: string; border: string }>, options: PDFExportOptions): string {
   const color = colors[issue.severity] || colors.medium;
   
   return `
@@ -475,7 +479,7 @@ function renderIssueCard(issue: Issue, colors: Record<string, { bg: string; text
       <div class="issue-body">
         ${issue.whyItMatters ? `<div class="issue-description">${escapeHtml(issue.whyItMatters)}</div>` : ''}
         
-        ${issue.fixSteps && issue.fixSteps.length > 0 ? `
+        ${options.includeResolutionSteps && issue.fixSteps && issue.fixSteps.length > 0 ? `
           <div class="steps-section">
             <div class="steps-title">How to Fix</div>
             <ol class="steps-list">
@@ -484,7 +488,7 @@ function renderIssueCard(issue: Issue, colors: Record<string, { bg: string; text
           </div>
         ` : ''}
         
-        ${issue.verifySteps && issue.verifySteps.length > 0 ? `
+        ${options.includeResolutionSteps && issue.verifySteps && issue.verifySteps.length > 0 ? `
           <div class="steps-section">
             <div class="steps-title">Verification</div>
             <ol class="steps-list">
