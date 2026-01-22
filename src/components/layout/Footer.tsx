@@ -39,12 +39,12 @@ export function Footer() {
               >
                 SEO Analysis
               </Link>
-              <Link 
-                to="/about" 
+              <a 
+                href="/#about" 
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 About
-              </Link>
+              </a>
               <a 
                 href="https://wiki.supportcall.com.au/doku.php?id=policy_-_privacy_policy" 
                 target="_blank"
