@@ -7,6 +7,7 @@ import { ScrollReset } from "@/components/ScrollReset";
 import { ScrollToTop } from "@/components/ui/scroll-to-top";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
+import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import ProductionChecklist from "./pages/ProductionChecklist";
 import Healthz from "./pages/Healthz";
@@ -25,6 +26,7 @@ const App = () => (
           <ScrollReset />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/about" element={<About />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/production-checklist" element={<ProductionChecklist />} />
             <Route path="/healthz" element={<Healthz />} />
