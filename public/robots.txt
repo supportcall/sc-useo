@@ -1,15 +1,18 @@
-# robots.txt for SupportCALL Ultimate SEO
-# https://sc-seo.io/
+# robots.txt for SC-U SEO
+# https://sc-useo.com/
 
+# Allow all search engines
 User-agent: Googlebot
 Allow: /
 Disallow: /healthz
 Disallow: /readyz
+Disallow: /api/
 
 User-agent: Bingbot
 Allow: /
 Disallow: /healthz
 Disallow: /readyz
+Disallow: /api/
 
 User-agent: Twitterbot
 Allow: /
@@ -21,6 +24,9 @@ User-agent: *
 Allow: /
 Disallow: /healthz
 Disallow: /readyz
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
 
 # Sitemap location
-Sitemap: https://sc-seo.io/sitemap.xml
+Sitemap: https://sc-useo.com/sitemap.xml
