@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://sc-seo.io/</loc>
+    <loc>https://sc-useo.com/</loc>
+    <lastmod>2026-01-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://sc-seo.io/privacy</loc>
+    <loc>https://sc-useo.com/privacy</loc>
+    <lastmod>2026-01-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://sc-seo.io/production-checklist</loc>
+    <loc>https://sc-useo.com/production-checklist</loc>
+    <lastmod>2026-01-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

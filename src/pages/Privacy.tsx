@@ -1,6 +1,6 @@
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Database, Eye, Trash2, Lock, Server } from 'lucide-react';
+import { Shield, Database, Eye, Trash2, Lock, Server, BarChart3, Cookie } from 'lucide-react';
 
 const Privacy = () => {
   return (
@@ -8,7 +8,7 @@ const Privacy = () => {
       <div className="container-narrow py-8 lg:py-12">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Privacy Policy</h1>
         <p className="text-muted-foreground mb-8">
-          Last updated: {new Date().toLocaleDateString()}
+          Last updated: January 31, 2026
         </p>
 
         <div className="prose prose-neutral max-w-none space-y-6">
@@ -21,7 +21,7 @@ const Privacy = () => {
             </CardHeader>
             <CardContent className="space-y-4 text-muted-foreground">
               <p>
-                <strong className="text-foreground">SupportCALL Ultimate SEO</strong> is designed with privacy as a core principle. 
+                <strong className="text-foreground">SC-U SEO</strong> is designed with privacy as a core principle. 
                 We perform <strong className="text-foreground">one-off SEO analysis</strong> without storing any of your data.
               </p>
               <p>
@@ -55,13 +55,80 @@ const Privacy = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <Trash2 className="h-4 w-4 mt-1 text-destructive flex-shrink-0" />
-                  <span><strong className="text-foreground">Personal information:</strong> No accounts, no cookies, no tracking.</span>
+                  <span><strong className="text-foreground">Personal information:</strong> No accounts required, no tracking cookies.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Trash2 className="h-4 w-4 mt-1 text-destructive flex-shrink-0" />
                   <span><strong className="text-foreground">IP addresses:</strong> We don't log visitor IPs to persistent storage.</span>
                 </li>
               </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Analytics & Session Recording
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-muted-foreground">
+              <p>
+                We may use the following third-party services to understand how visitors use our site:
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span><strong className="text-foreground">Google Analytics 4 (GA4):</strong> Collects anonymous usage data such as pages visited, time on site, and device type. No personally identifiable information is collected.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span><strong className="text-foreground">Google Tag Manager (GTM):</strong> Manages analytics and tracking scripts. Does not collect data itself.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span><strong className="text-foreground">Microsoft Clarity:</strong> May record anonymous session replays to understand user behavior. Sensitive form fields are automatically masked.</span>
+                </li>
+              </ul>
+              <p>
+                You can opt out of Google Analytics by installing the{' '}
+                <a 
+                  href="https://tools.google.com/dlpage/gaoptout" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Google Analytics Opt-out Browser Add-on
+                </a>.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Cookie className="h-5 w-5 text-primary" />
+                Cookies
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-muted-foreground">
+              <p>
+                <strong className="text-foreground">Essential cookies:</strong> We use minimal cookies required for the site to function. These do not track you across websites.
+              </p>
+              <p>
+                <strong className="text-foreground">Analytics cookies:</strong> If enabled, Google Analytics and Microsoft Clarity may set cookies to track anonymous usage patterns. These help us improve the site but are not essential.
+              </p>
+              <p>
+                <strong className="text-foreground">Remarketing:</strong> We may use Google Ads remarketing to show relevant ads to previous visitors. You can opt out via{' '}
+                <a 
+                  href="https://adssettings.google.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Google Ads Settings
+                </a>.
+              </p>
             </CardContent>
           </Card>
 

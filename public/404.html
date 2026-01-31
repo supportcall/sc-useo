@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page Not Found - SupportCALL Ultimate SEO</title>
+  <title>Page Not Found - SC-U SEO</title>
+  <meta name="description" content="The page you're looking for doesn't exist. Return to SC-U SEO homepage.">
   <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://sc-useo.com/">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f8fafc;
-      color: #334155;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: hsl(210, 20%, 98%);
+      color: hsl(220, 20%, 15%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -19,25 +22,43 @@
       padding: 2rem;
     }
     .container { max-width: 400px; }
-    h1 { font-size: 4rem; color: #4a5568; margin-bottom: 1rem; }
-    p { font-size: 1.125rem; margin-bottom: 1.5rem; color: #64748b; }
+    h1 { font-size: 4rem; color: hsl(215, 25%, 35%); margin-bottom: 1rem; font-weight: 700; }
+    p { font-size: 1.125rem; margin-bottom: 1.5rem; color: hsl(215, 15%, 50%); }
+    .links { display: flex; flex-direction: column; gap: 0.75rem; }
     a {
       display: inline-block;
       padding: 0.75rem 1.5rem;
-      background: #4a5568;
+      background: hsl(215, 25%, 35%);
       color: white;
       text-decoration: none;
       border-radius: 0.375rem;
       font-weight: 500;
+      transition: background 150ms;
     }
-    a:hover { background: #374151; }
+    a:hover { background: hsl(215, 25%, 25%); }
+    a.secondary {
+      background: transparent;
+      color: hsl(215, 25%, 35%);
+      border: 1px solid hsl(214, 20%, 88%);
+    }
+    a.secondary:hover { background: hsl(210, 15%, 94%); }
+    nav { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid hsl(214, 20%, 88%); }
+    nav p { font-size: 0.875rem; margin-bottom: 0.75rem; }
+    nav a { padding: 0.5rem 1rem; font-size: 0.875rem; }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" role="main">
     <h1>404</h1>
-    <p>The page you're looking for doesn't exist.</p>
-    <a href="/">Return to Home</a>
+    <p>The page you're looking for doesn't exist or has been moved.</p>
+    <div class="links">
+      <a href="/">Return to Home</a>
+      <a href="/production-checklist" class="secondary">View Production Checklist</a>
+    </div>
+    <nav aria-label="Quick links">
+      <p>Quick Links:</p>
+      <a href="/#about" class="secondary">About</a>
+    </nav>
   </div>
 </body>
 </html>
